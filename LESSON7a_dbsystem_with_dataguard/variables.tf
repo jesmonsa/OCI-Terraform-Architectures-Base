@@ -22,6 +22,7 @@ variable "compartment_ocid" {
 
 variable "region" {
   description = "The region where OCI resources will be deployed, such as 'us-ashburn-1' or 'eu-frankfurt-1'."
+  default     = "us-ashburn-1"
 }
 
 # Availability Domain Configuration

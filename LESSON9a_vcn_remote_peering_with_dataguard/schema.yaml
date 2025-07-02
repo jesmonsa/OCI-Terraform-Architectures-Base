@@ -1,9 +1,9 @@
 # Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-title: "LESSON 9a - VCN remote peering with cross-region DataGuard"
-description: "FoggyKitchen Terraform OCI Course - LESSON 9a - VCN remote peering with cross-region DataGuard."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 9a - VCN remote peering with cross-region DataGuard."
+title: "Arquitectura 9a - Interconexión remota de VCN con DataGuard entre regiones"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 9a - Interconexión remota de VCN con DataGuard entre regiones."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 9a - Interconexión remota de VCN con DataGuard entre regiones."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"

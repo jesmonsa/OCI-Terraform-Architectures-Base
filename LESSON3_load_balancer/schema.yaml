@@ -1,6 +1,6 @@
-title: "LESSON 3 - Load Balancer"
-description: "FoggyKitchen Terraform OCI Course - LESSON 3 - Load Balancer."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 3 - Load Balancer."
+title: "Arquitectura 3 - Balanceador de Carga"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 3 - Balanceador de Carga."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 3 - Balanceador de Carga."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"

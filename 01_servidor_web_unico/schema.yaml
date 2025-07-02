@@ -1,6 +1,6 @@
-title: "LESSON 1 - Single Webserver"
-description: "FoggyKitchen Terraform OCI Course - LESSON 1 - Single Webserver."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 1 - Single Webserver."
+title: "Arquitectura 1 - Servidor Web Único"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 1 - Servidor Web Único."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 1 - Servidor Web Único."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"
@@ -193,7 +193,7 @@ outputs:
     type: string
     visible: true
   
-  FoggyKitchenWebserver1PublicIP:
+  EnterpriseWebserver1PublicIP:
     title: "Webserver Public IP"
     displayText: "Webserver Public IP"
     type: copyableString

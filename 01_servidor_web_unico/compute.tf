@@ -1,9 +1,9 @@
 # WebServer Compute
 
-resource "oci_core_instance" "FoggyKitchenWebserver1" {
+resource "oci_core_instance" "EnterpriseWebserver1" {
   availability_domain = var.availability_domain_name == "" ? local.default_availability_domain : var.availability_domain_name
-  compartment_id      = oci_identity_compartment.FoggyKitchenCompartment.id
-  display_name        = "FoggyKitchenWebServer"
+  compartment_id      = oci_identity_compartment.EnterpriseCompartment.id
+  display_name        = "EnterpriseWebServer"
   shape               = var.Shape
 
   dynamic "shape_config" {
@@ -24,7 +24,7 @@ resource "oci_core_instance" "FoggyKitchenWebserver1" {
   }
 
   create_vnic_details {
-    subnet_id        = oci_core_subnet.FoggyKitchenWebSubnet.id
+    subnet_id        = oci_core_subnet.EnterpriseWebSubnet.id
     assign_public_ip = true
   }
 }

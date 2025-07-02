@@ -22,7 +22,22 @@ output "FoggyKitchenLoadBalancer_Public_IP" {
   value = oci_load_balancer.FoggyKitchenLoadBalancer.ip_address_details[0].ip_address
 }
 
-# DBServer Private IP
+# Primary DBServer Private IP
 output "FoggyKitchenDBServer_PrivateIP" {
   value = [data.oci_core_vnic.FoggyKitchenDBSystem_VNIC1.private_ip_address]
+}
+
+# DataGuard Association ID
+output "FoggyKitchenDataGuard_ID" {
+  value = oci_database_data_guard_association.FoggyKitchenDataGuard.id
+}
+
+# DataGuard Standby System Info
+output "FoggyKitchenDataGuard_Info" {
+  value = {
+    "peer_db_system_id" = oci_database_data_guard_association.FoggyKitchenDataGuard.peer_db_system_id
+    "peer_role"         = oci_database_data_guard_association.FoggyKitchenDataGuard.peer_role
+    "protection_mode"   = oci_database_data_guard_association.FoggyKitchenDataGuard.protection_mode
+    "transport_type"    = oci_database_data_guard_association.FoggyKitchenDataGuard.transport_type
+  }
 }

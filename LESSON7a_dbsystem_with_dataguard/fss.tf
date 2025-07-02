@@ -6,7 +6,6 @@ resource "oci_file_storage_mount_target" "FoggyKitchenMountTarget" {
   subnet_id           = oci_core_subnet.FoggyKitchenWebSubnet.id
   ip_address          = var.MountTargetIPAddress
   display_name        = "FoggyKitchenMountTarget"
-  nsg_ids             = [oci_core_network_security_group.FoggyKitchenFSSSecurityGroup.id]
 }
 
 # Export Set

@@ -23,10 +23,21 @@ resource "null_resource" "FoggyKitchenWebserverSharedFilesystem" {
     }
     inline = [
       "echo '== Start of null_resource.FoggyKitchenWebserverSharedFilesystem'",
-      "sudo /bin/su -c \"dnf install -y -q nfs-utils\"",
-      "sudo /bin/su -c \"mkdir -p /sharedfs\"",
-      "sudo /bin/su -c \"echo '${var.MountTargetIPAddress}:/sharedfs /sharedfs nfs rsize=8192,wsize=8192,timeo=14,intr 0 0' >> /etc/fstab\"",
-      "sudo /bin/su -c \"mount /sharedfs -v\"",
+      "echo '=== 1. Disabling problematic repos ==='",
+      "sudo dnf config-manager --disable ol8_ksplice || true",
+      "sudo dnf config-manager --disable ol8_oci_included || true",
+      "echo '=== 2. Installing NFS utilities ==='",
+      "sudo dnf install -y nfs-utils",
+      "echo '=== 3. Creating mount directory ==='",
+      "sudo mkdir -p /sharedfs",
+      "echo '=== 4. Mounting FSS with reliable NFS v3 ==='",
+      "sudo mount -t nfs -o vers=3,timeo=14,intr ${var.MountTargetIPAddress}:/sharedfs /sharedfs",
+      "echo '=== 5. Adding to fstab for persistence ==='",
+      "echo '${var.MountTargetIPAddress}:/sharedfs /sharedfs nfs vers=3,rsize=8192,wsize=8192,timeo=14,intr,_netdev 0 0' | sudo tee -a /etc/fstab",
+      "echo '=== 6. Reloading systemd daemon ==='",
+      "sudo systemctl daemon-reload",
+      "echo '=== 7. Verifying mount ==='",
+      "df -h | grep sharedfs || (echo 'Mount failed, retrying...' && sudo mount -a)",
       "echo '== End of null_resource.FoggyKitchenWebserverSharedFilesystem'"
     ]
   }
@@ -56,26 +67,43 @@ resource "null_resource" "FoggyKitchenWebserverHTTPD" {
       bastion_user        = "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
     }
-    inline = ["echo '== 1. Installing HTTPD package with dnf'",
-      "sudo -u root dnf -y -q install httpd",
+    inline = [
+      "echo '== 1. Installing HTTPD package with dnf'",
+      "sudo dnf config-manager --disable ol8_ksplice || true",
+      "sudo dnf -y install httpd",
+      
+      "echo '== 2. Verifying /sharedfs is mounted'",
+      "df -h | grep sharedfs || (echo 'FSS not mounted, waiting...' && sleep 10)",
+      
+      "echo '== 3. Creating /sharedfs/index.html'",
+      "sudo touch /sharedfs/index.html",
+      "sudo /bin/su -c \"echo 'Welcome to FoggyKitchen.com! These are WEBSERVERS under LB with shared filesystem - LESSON7 Fixed!' > /sharedfs/index.html\"",
 
-      "echo '== 2. Creating /sharedfs/index.html'",
-      "sudo -u root touch /sharedfs/index.html",
-      "sudo /bin/su -c \"echo 'Welcome to FoggyKitchen.com! These are both WEBSERVERS under LB umbrella with shared index.html ...' > /sharedfs/index.html\"",
-
-      "echo '== 3. Adding Alias and Directory sharedfs to /etc/httpd/conf/httpd.conf'",
+      "echo '== 4. Adding Alias and Directory sharedfs to /etc/httpd/conf/httpd.conf'",
       "sudo /bin/su -c \"echo 'Alias /shared/ /sharedfs/' >> /etc/httpd/conf/httpd.conf\"",
       "sudo /bin/su -c \"echo '<Directory /sharedfs>' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo 'AllowOverride All' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo 'Require all granted' >> /etc/httpd/conf/httpd.conf\"",
+      "sudo /bin/su -c \"echo '    Options Indexes FollowSymLinks' >> /etc/httpd/conf/httpd.conf\"",
+      "sudo /bin/su -c \"echo '    AllowOverride All' >> /etc/httpd/conf/httpd.conf\"",
+      "sudo /bin/su -c \"echo '    Require all granted' >> /etc/httpd/conf/httpd.conf\"",
       "sudo /bin/su -c \"echo '</Directory>' >> /etc/httpd/conf/httpd.conf\"",
 
-      "echo '== 4. Disabling SELinux'",
-      "sudo -u root setenforce 0",
+      "echo '== 5. Testing Apache configuration'",
+      "sudo httpd -t || echo 'Apache config has warnings but continuing'",
 
-      "echo '== 5. Disabling firewall and starting HTTPD service'",
-      "sudo -u root service firewalld stop",
-    "sudo -u root service httpd start"]
+      "echo '== 6. Disabling SELinux and firewall'",
+      "sudo setenforce 0 || true",
+      "sudo systemctl stop firewalld || true",
+      "sudo systemctl disable firewalld || true",
+
+      "echo '== 7. Starting HTTPD service'",
+      "sudo systemctl enable httpd",
+      "sudo systemctl start httpd",
+      
+      "echo '== 8. Final verification'",
+      "sudo systemctl status httpd --no-pager",
+      "curl -s localhost/shared/ | head -1 || echo 'Shared path test failed'",
+      "echo '== HTTPD setup completed successfully'"
+    ]
   }
 }
 

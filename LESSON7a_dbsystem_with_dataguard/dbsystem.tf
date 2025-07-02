@@ -1,4 +1,4 @@
-# DBSystem
+# Primary DB System (AD-1)
 resource "oci_database_db_system" "FoggyKitchenDBSystem" {
   availability_domain = lookup(data.oci_identity_availability_domains.ADs.availability_domains[0], "name") 
   compartment_id      = oci_identity_compartment.FoggyKitchenCompartment.id
@@ -23,28 +23,29 @@ resource "oci_database_db_system" "FoggyKitchenDBSystem" {
   display_name            = var.DBSystemDisplayName
   domain                  = var.DBNodeDomainName
   hostname                = var.DBNodeHostName
-  nsg_ids                 = [oci_core_network_security_group.FoggyKitchenDBSystemSecurityGroup.id]
   data_storage_percentage = "40"
   data_storage_size_in_gb = var.DBDataStorageSizeInGB
   license_model           = var.DBLicenseModel
   node_count              = var.DBNodeCount
 }
 
-# Standby DBSystem 
-resource "oci_database_data_guard_association" "FoggyKitchenDBSystemStandby" {
+# DataGuard Association - Simple approach (creates standby automatically)
+resource "oci_database_data_guard_association" "FoggyKitchenDataGuard" {
+  depends_on = [oci_database_db_system.FoggyKitchenDBSystem]
+  
   creation_type                    = "NewDbSystem"
   database_admin_password          = var.DBAdminPassword
   database_id                      = data.oci_database_databases.primarydb.databases.0.id
   protection_mode                  = "MAXIMUM_PERFORMANCE"
   transport_type                   = "ASYNC"
   delete_standby_db_home_on_delete = "true"
-  cpu_core_count                   = var.CPUCoreCount
 
-  availability_domain = lookup(data.oci_identity_availability_domains.ADs.availability_domains[1], "name") 
+  # Standby will be created in AD-2
+  availability_domain = lookup(data.oci_identity_availability_domains.ADs.availability_domains[1], "name")
   display_name        = var.DBStandbySystemDisplayName
   hostname            = var.DBStandbyNodeHostName
-  nsg_ids             = [oci_core_network_security_group.FoggyKitchenDBSystemSecurityGroup.id]
   shape               = var.DBStandbyNodeShape
   subnet_id           = oci_core_subnet.FoggyKitchenDBSubnet.id
+  cpu_core_count      = var.CPUCoreCount
 }
 

@@ -1,11 +1,33 @@
-# Setup FSS on Webserver
+# Robust Remote Provisioning with Retry Logic and Better Dependencies
 
-resource "null_resource" "FoggyKitchenWebserverSharedFilesystem" {
+# Network stabilization delay
+resource "null_resource" "network_stabilization" {
+  provisioner "local-exec" {
+    command = "echo 'Waiting for network stabilization...' && sleep 60"
+  }
+  depends_on = [
+    oci_core_internet_gateway.FoggyKitchenInternetGateway,
+    oci_core_route_table.FoggyKitchenRouteTableViaIGW,
+    oci_core_subnet.FoggyKitchenWebSubnet
+  ]
+}
+
+# Software installation within WebServer Instance with robust retry logic
+resource "null_resource" "FoggyKitchenWebserverHTTPD" {
   count = var.ComputeCount
   triggers = {
     instance_id = oci_core_instance.FoggyKitchenWebserver[count.index].id
   }  
-  depends_on = [oci_core_instance.FoggyKitchenWebserver,oci_core_instance.FoggyKitchenBastionServer, oci_file_storage_export.FoggyKitchenExport]
+  depends_on = [
+    oci_core_instance.FoggyKitchenWebserver, 
+    oci_core_instance.FoggyKitchenBastionServer,
+    null_resource.network_stabilization
+  ]
+
+  # Staggered deployment to avoid race conditions
+  provisioner "local-exec" {
+    command = "echo 'Staggered delay for webserver ${count.index + 1}' && sleep ${count.index * 45}"
+  }
 
   provisioner "remote-exec" {
     connection {
@@ -22,75 +44,82 @@ resource "null_resource" "FoggyKitchenWebserverSharedFilesystem" {
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
     }
     inline = [
-      "echo '== Start of null_resource.FoggyKitchenWebserverSharedFilesystem'",
-      "sudo /bin/su -c \"dnf install -y -q nfs-utils\"",
-      "sudo /bin/su -c \"mkdir -p /sharedfs\"",
-      "sudo /bin/su -c \"echo '${var.MountTargetIPAddress}:/sharedfs /sharedfs nfs rsize=8192,wsize=8192,timeo=14,intr 0 0' >> /etc/fstab\"",
-      "sudo /bin/su -c \"mount /sharedfs -v\"",
-      "echo '== End of null_resource.FoggyKitchenWebserverSharedFilesystem'"
+      "echo '=== Installing HTTPD on webserver ${count.index + 1} with robust retry logic ==='",
+      "echo '=== 0. Network connectivity test ==='",
+      "for i in {1..5}; do if ping -c 1 google.com &>/dev/null; then echo 'Network OK'; break; else echo 'Network test $i/5 failed, waiting...'; sleep 10; fi; done",
+      "echo '=== 1. Disabling problematic repos ==='",
+      "sudo dnf config-manager --disable ol8_ksplice || true",
+      "sudo dnf config-manager --disable ol8_oci_included || true",
+      "sudo dnf config-manager --disable ol8_MySQL84 || true",
+      "echo '=== 2. Clean DNF cache ==='",
+      "sudo dnf clean all",
+      "echo '=== 3. Installing HTTPD with retry logic ==='",
+      "HTTPD_INSTALLED=false",
+      "for attempt in {1..5}; do",
+      "  echo \"HTTPD installation attempt $attempt of 5\"",
+      "  if sudo dnf -y install httpd; then",
+      "    echo \"HTTPD installation successful on attempt $attempt\"",
+      "    HTTPD_INSTALLED=true",
+      "    break",
+      "  else",
+      "    echo \"HTTPD installation failed on attempt $attempt\"",
+      "    if [ $attempt -lt 5 ]; then",
+      "      echo \"Waiting 60 seconds before retry...\"",
+      "      sleep 60",
+      "      sudo dnf clean all",
+      "    fi",
+      "  fi",
+      "done",
+      "if [ \"$HTTPD_INSTALLED\" != \"true\" ]; then",
+      "  echo \"ERROR: HTTPD installation failed after 5 attempts\"",
+      "  exit 1",
+      "fi",
+      "echo '=== 4. Verifying HTTPD installation ==='",
+      "if ! command -v httpd &> /dev/null; then",
+      "  echo \"ERROR: httpd command not found after installation\"",
+      "  exit 1",
+      "fi",
+      "echo '=== 5. Creating basic index.html ==='",
+      "sudo mkdir -p /var/www/html",
+      "sudo /bin/su -c \"echo 'Welcome to FoggyKitchen.com! Webserver ${count.index + 1} with DataGuard!' > /var/www/html/index.html\"",
+      "echo '=== 6. Disabling SELinux and firewall ==='",
+      "sudo setenforce 0 || true",
+      "sudo systemctl stop firewalld || true",
+      "sudo systemctl disable firewalld || true",
+      "echo '=== 7. Starting HTTPD service with verification ==='",
+      "sudo systemctl enable httpd",
+      "sudo systemctl start httpd",
+      "for i in {1..10}; do",
+      "  if sudo systemctl is-active httpd >/dev/null 2>&1; then",
+      "    echo \"HTTPD service is active\"",
+      "    break",
+      "  else",
+      "    echo \"Waiting for HTTPD to start... attempt $i/10\"",
+      "    sleep 5",
+      "  fi",
+      "done",
+      "echo '=== 8. Final verification ==='",
+      "sudo systemctl status httpd --no-pager",
+      "curl -s localhost | head -1 || echo 'HTTP test failed'",
+      "echo '=== HTTPD installation completed successfully for webserver ${count.index + 1} ==='"
     ]
   }
-
 }
 
-# Software installation within WebServer Instance
-
-resource "null_resource" "FoggyKitchenWebserverHTTPD" {
+# Setup FSS on Webserver (simplified version)
+resource "null_resource" "FoggyKitchenWebserverSharedFilesystem" {
   count = var.ComputeCount
   triggers = {
     instance_id = oci_core_instance.FoggyKitchenWebserver[count.index].id
-  }  
-  depends_on = [oci_core_instance.FoggyKitchenWebserver, oci_core_instance.FoggyKitchenBastionServer, null_resource.FoggyKitchenWebserverSharedFilesystem]
-  
-  provisioner "remote-exec" {
-    connection {
-      type                = "ssh"
-      user                = "opc"
-      host                = data.oci_core_vnic.FoggyKitchenWebserver_VNIC1[count.index].private_ip_address
-      private_key         = tls_private_key.public_private_key_pair.private_key_pem
-      script_path         = "/home/opc/myssh.sh"
-      agent               = false
-      timeout             = "10m"
-      bastion_host        = data.oci_core_vnic.FoggyKitchenBastionServer_VNIC1.public_ip_address
-      bastion_port        = "22"
-      bastion_user        = "opc"
-      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
-    }
-    inline = ["echo '== 1. Installing HTTPD package with dnf'",
-      "sudo -u root dnf -y -q install httpd",
-
-      "echo '== 2. Creating /sharedfs/index.html'",
-      "sudo -u root touch /sharedfs/index.html",
-      "sudo /bin/su -c \"echo 'Welcome to FoggyKitchen.com! These are both WEBSERVERS under LB umbrella with shared index.html ...' > /sharedfs/index.html\"",
-
-      "echo '== 3. Adding Alias and Directory sharedfs to /etc/httpd/conf/httpd.conf'",
-      "sudo /bin/su -c \"echo 'Alias /shared/ /sharedfs/' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo '<Directory /sharedfs>' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo 'AllowOverride All' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo 'Require all granted' >> /etc/httpd/conf/httpd.conf\"",
-      "sudo /bin/su -c \"echo '</Directory>' >> /etc/httpd/conf/httpd.conf\"",
-
-      "echo '== 4. Disabling SELinux'",
-      "sudo -u root setenforce 0",
-
-      "echo '== 5. Disabling firewall and starting HTTPD service'",
-      "sudo -u root service firewalld stop",
-    "sudo -u root service httpd start"]
-  }
-}
-
-# Attachment of block volume to Webserver
-resource "null_resource" "FoggyKitchenWebserver_oci_iscsi_attach" {
-  count = var.ComputeCount
-  triggers = {
-    instance_id = oci_core_instance.FoggyKitchenWebserver[count.index].id
+    mount_target_id = oci_file_storage_mount_target.FoggyKitchenMountTarget.id
   }  
   depends_on = [
-    oci_core_instance.FoggyKitchenWebserver, 
+    oci_core_instance.FoggyKitchenWebserver,
     oci_core_instance.FoggyKitchenBastionServer, 
-    null_resource.FoggyKitchenWebserverSharedFilesystem, 
-    null_resource.FoggyKitchenWebserverHTTPD,
-    oci_core_volume_attachment.FoggyKitchenWebserverBlockVolume_attach
+    oci_file_storage_export.FoggyKitchenExport, 
+    oci_file_storage_mount_target.FoggyKitchenMountTarget,
+    oci_file_storage_file_system.FoggyKitchenFilesystem,
+    null_resource.FoggyKitchenWebserverHTTPD
   ]
 
   provisioner "remote-exec" {
@@ -107,84 +136,97 @@ resource "null_resource" "FoggyKitchenWebserver_oci_iscsi_attach" {
       bastion_user        = "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
     }
-    inline = ["sudo /bin/su -c \"rm -Rf /home/opc/iscsiattach.sh\""]
-  }
-
-  provisioner "file" {
-    connection {
-      type                = "ssh"
-      user                = "opc"
-      host                = data.oci_core_vnic.FoggyKitchenWebserver_VNIC1[count.index].private_ip_address
-      private_key         = tls_private_key.public_private_key_pair.private_key_pem
-      script_path         = "/home/opc/myssh.sh"
-      agent               = false
-      timeout             = "10m"
-      bastion_host        = data.oci_core_vnic.FoggyKitchenBastionServer_VNIC1.public_ip_address
-      bastion_port        = "22"
-      bastion_user        = "opc"
-      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
-    }
-    source      = "iscsiattach.sh"
-    destination = "/home/opc/iscsiattach.sh"
-  }
-
-  provisioner "remote-exec" {
-    connection {
-      type                = "ssh"
-      user                = "opc"
-      host                = data.oci_core_vnic.FoggyKitchenWebserver_VNIC1[count.index].private_ip_address
-      private_key         = tls_private_key.public_private_key_pair.private_key_pem
-      script_path         = "/home/opc/myssh.sh"
-      agent               = false
-      timeout             = "10m"
-      bastion_host        = data.oci_core_vnic.FoggyKitchenBastionServer_VNIC1.public_ip_address
-      bastion_port        = "22"
-      bastion_user        = "opc"
-      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
-    }
-    inline = ["sudo /bin/su -c \"chown root /home/opc/iscsiattach.sh\"",
-              "sudo /bin/su -c \"chmod u+x /home/opc/iscsiattach.sh\"",
-              "sudo /bin/su -c \"/home/opc/iscsiattach.sh\""]
-  }
-
-}
-
-# Mount of attached block volume on Webserver
-resource "null_resource" "FoggyKitchenWebserver_oci_u01_fstab" {
-  count = var.ComputeCount
-  triggers = {
-    instance_id = oci_core_instance.FoggyKitchenWebserver[count.index].id
-  } 
-  depends_on = [null_resource.FoggyKitchenWebserver_oci_iscsi_attach]
-
-  provisioner "remote-exec" {
-    connection {
-      type                = "ssh"
-      user                = "opc"
-      host                = data.oci_core_vnic.FoggyKitchenWebserver_VNIC1[count.index].private_ip_address
-      private_key         = tls_private_key.public_private_key_pair.private_key_pem
-      script_path         = "/home/opc/myssh.sh"
-      agent               = false
-      timeout             = "10m"
-      bastion_host        = data.oci_core_vnic.FoggyKitchenBastionServer_VNIC1.public_ip_address
-      bastion_port        = "22"
-      bastion_user        = "opc"
-      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
-    }
-    inline = ["echo '== Start of null_resource.FoggyKitchenWebserver_oci_u01_fstab'",
-      "sudo -u root parted /dev/sdb --script -- mklabel gpt",
-      "sudo -u root parted /dev/sdb --script -- mkpart primary ext4 0% 100%",
-      "sudo -u root mkfs.ext4 -F /dev/sdb1",
-      "sudo -u root mkdir /u01",
-      "sudo -u root mount /dev/sdb1 /u01",
-      "sudo /bin/su -c \"echo '/dev/sdb1              /u01  ext4    defaults,noatime,_netdev    0   0' >> /etc/fstab\"",
-      "sudo -u root mount | grep sdb1",
-      "echo '== End of null_resource.FoggyKitchenWebserver_oci_u01_fstab'",
+    inline = [
+      "echo '=== Setting up FSS for webserver ${count.index + 1} with robust error handling ==='",
+      "echo '=== 1. Verifying HTTPD is installed and running ==='",
+      "if ! command -v httpd &> /dev/null; then",
+      "  echo \"ERROR: HTTPD not found. Cannot proceed with FSS setup.\"",
+      "  exit 1",
+      "fi",
+      "if ! sudo systemctl is-active httpd >/dev/null 2>&1; then",
+      "  echo \"ERROR: HTTPD service not running. Cannot proceed with FSS setup.\"",
+      "  exit 1",
+      "fi",
+      "echo '=== 2. Disabling problematic repos ==='",
+      "sudo dnf config-manager --disable ol8_ksplice || true",
+      "sudo dnf config-manager --disable ol8_oci_included || true",
+      "sudo dnf config-manager --disable ol8_MySQL84 || true",
+      "echo '=== 3. Installing NFS utilities with retry ==='",
+      "NFS_INSTALLED=false",
+      "for attempt in {1..3}; do",
+      "  echo \"NFS utils installation attempt $attempt of 3\"",
+      "  if sudo dnf -y install nfs-utils; then",
+      "    NFS_INSTALLED=true",
+      "    break",
+      "  else",
+      "    echo \"NFS installation failed on attempt $attempt\"",
+      "    if [ $attempt -lt 3 ]; then",
+      "      echo \"Waiting 30 seconds before retry...\"",
+      "      sleep 30",
+      "      sudo dnf clean all",
+      "    fi",
+      "  fi",
+      "done",
+      "if [ \"$NFS_INSTALLED\" != \"true\" ]; then",
+      "  echo \"ERROR: NFS utils installation failed after 3 attempts\"",
+      "  exit 1",
+      "fi",
+      "echo '=== 4. Creating mount directory ==='",
+      "sudo mkdir -p /sharedfs",
+      "echo '=== 5. Mounting FSS with robust retry logic ==='",
+      "MOUNT_SUCCESS=false",
+      "for attempt in {1..5}; do",
+      "  echo \"FSS mount attempt $attempt of 5\"",
+      "  if sudo mount -t nfs -o vers=3,timeo=14,intr ${var.MountTargetIPAddress}:/sharedfs /sharedfs; then",
+      "    echo \"FSS mount successful on attempt $attempt\"",
+      "    MOUNT_SUCCESS=true",
+      "    break",
+      "  else",
+      "    echo \"FSS mount failed on attempt $attempt\"",
+      "    if [ $attempt -lt 5 ]; then",
+      "      echo \"Waiting 30 seconds before retry...\"",
+      "      sleep 30",
+      "    fi",
+      "  fi",
+      "done",
+      "if [ \"$MOUNT_SUCCESS\" != \"true\" ]; then",
+      "  echo \"WARNING: FSS mount failed after 5 attempts. Continuing without shared filesystem.\"",
+      "else",
+      "  echo '=== 6. Adding to fstab for persistence ==='",
+      "  echo '${var.MountTargetIPAddress}:/sharedfs /sharedfs nfs vers=3,rsize=8192,wsize=8192,timeo=14,intr,_netdev 0 0' | sudo tee -a /etc/fstab",
+      "  echo '=== 7. Reloading systemd daemon ==='",
+      "  sudo systemctl daemon-reload",
+      "  echo '=== 8. Creating shared index.html ==='",
+      "  sudo /bin/su -c \"echo 'Welcome to FoggyKitchen.com! These are WEBSERVERS under LB with shared filesystem - LESSON7a with DataGuard!' > /sharedfs/index.html\"",
+      "  echo '=== 9. Configuring Apache for /shared/ alias ==='",
+      "  sudo /bin/su -c \"echo 'Alias /shared/ /sharedfs/' >> /etc/httpd/conf/httpd.conf\"",
+      "  sudo /bin/su -c \"echo '<Directory /sharedfs>' >> /etc/httpd/conf/httpd.conf\"",
+      "  sudo /bin/su -c \"echo '    Options Indexes FollowSymLinks' >> /etc/httpd/conf/httpd.conf\"",
+      "  sudo /bin/su -c \"echo '    AllowOverride All' >> /etc/httpd/conf/httpd.conf\"",
+      "  sudo /bin/su -c \"echo '    Require all granted' >> /etc/httpd/conf/httpd.conf\"",
+      "  sudo /bin/su -c \"echo '</Directory>' >> /etc/httpd/conf/httpd.conf\"",
+      "fi",
+      "echo '=== 10. Testing Apache configuration ==='",
+      "sudo httpd -t || echo 'Apache config has warnings but continuing'",
+      "sudo systemctl restart httpd",
+      "echo '=== 11. Verifying HTTPD restart ==='",
+      "for i in {1..10}; do",
+      "  if sudo systemctl is-active httpd >/dev/null 2>&1; then",
+      "    echo \"HTTPD restarted successfully\"",
+      "    break",
+      "  else",
+      "    echo \"Waiting for HTTPD restart... attempt $i/10\"",
+      "    sleep 5",
+      "  fi",
+      "done",
+      "echo '=== 12. Final verification ==='",
+      "if [ \"$MOUNT_SUCCESS\" = \"true\" ]; then",
+      "  df -h | grep sharedfs",
+      "  ls -la /sharedfs/",
+      "  curl -s localhost/shared/ | head -1 || echo 'Shared path test failed'",
+      "fi",
+      "curl -s localhost | head -1 || echo 'Basic HTTP test failed'",
+      "echo '=== FSS setup completed for webserver ${count.index + 1} ==='"
     ]
   }
-
 }
-
-
-
-

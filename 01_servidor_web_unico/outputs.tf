@@ -1,6 +1,6 @@
 # WebServer Instance Public IP
-output "FoggyKitchenWebserver1PublicIP" {
-  value = [data.oci_core_vnic.FoggyKitchenWebserver1_VNIC1.public_ip_address]
+output "EnterpriseWebserver1PublicIP" {
+  value = [data.oci_core_vnic.EnterpriseWebserver1_VNIC1.public_ip_address]
 }
 
 # Generated Private Key for WebServer Instance

@@ -25,7 +25,6 @@ resource "oci_core_instance" "FoggyKitchenWebserver" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.FoggyKitchenWebSubnet.id
     assign_public_ip = false
-    nsg_ids          = [oci_core_network_security_group.FoggyKitchenWebserverSecurityGroup.id]
   }
 }
 
@@ -55,6 +54,5 @@ resource "oci_core_instance" "FoggyKitchenBastionServer" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.FoggyKitchenBastionSubnet.id
     assign_public_ip = true
-    nsg_ids          = [oci_core_network_security_group.FoggyKitchenBastionSecurityGroup.id]
   }
 }

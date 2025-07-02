@@ -1,0 +1,353 @@
+# =============================================================================
+# GITIGNORE PARA PROYECTO TERRAFORM/OPENTOFU - OCI
+# Protección máxima de información sensible
+# =============================================================================
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN SENSIBLES
+# =============================================================================
+
+# Variables de Terraform con información sensible
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+!example.tfvars
+
+# Archivos de configuración de OCI
+oci_api_key.pem
+oci_api_key
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Archivos de configuración de proveedores
+.terraformrc
+terraform.rc
+tofu.rc
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+setup_oci_tf_vars.sh
+setup_oci_tf_vars_local.sh
+
+# =============================================================================
+# ARCHIVOS DE TERRAFORM/OPENTOFU
+# =============================================================================
+
+# Directorios de estado y caché
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfstate.*
+*.tfstate
+*.tfstate.backup
+*.tfstate.local
+*.tfstate.remote
+
+# Archivos de OpenTofu
+.tofu/
+tofu.tfstate
+tofu.tfstate.backup
+tofu.tfstate.*
+*.tofu.tfstate
+
+# Planes de Terraform
+*.tfplan
+*.plan
+terraform.plan
+tofu.plan
+
+# =============================================================================
+# CLAVES SSH Y CERTIFICADOS
+# =============================================================================
+
+# Claves SSH
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.ppk
+ssh_key
+ssh_key.pub
+
+# Certificados SSL/TLS
+*.crt
+*.cert
+*.pem
+*.key
+*.p12
+*.pfx
+*.der
+*.p7b
+*.p7c
+
+# =============================================================================
+# ARCHIVOS DE LOGS Y TEMPORALES
+# =============================================================================
+
+# Logs
+*.log
+logs/
+terraform.log
+tofu.log
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# ARCHIVOS DE BACKUP Y SNAPSHOTS
+# =============================================================================
+
+# Backups
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Snapshots
+*.snapshot
+snapshots/
+
+# =============================================================================
+# ARCHIVOS DE DESARROLLO Y IDE
+# =============================================================================
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.atom/
+.brackets.json
+
+# Archivos de configuración de editores
+.vimrc
+.vim/
+.emacs
+.emacs.d/
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE SISTEMAS OPERATIVOS
+# =============================================================================
+
+# Windows
+*.lnk
+*.url
+*.pif
+*.scr
+*.exe
+*.msi
+*.dll
+*.sys
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE RED Y SEGURIDAD
+# =============================================================================
+
+# Configuraciones de red
+hosts
+hosts.bak
+resolv.conf
+resolv.conf.bak
+
+# Firewall y seguridad
+iptables.rules
+ufw.rules
+firewall.rules
+
+# =============================================================================
+# ARCHIVOS DE MONITOREO Y METRICAS
+# =============================================================================
+
+# Métricas y monitoreo
+metrics/
+monitoring/
+*.metrics
+*.monitoring
+
+# =============================================================================
+# ARCHIVOS DE TESTING Y DESARROLLO
+# =============================================================================
+
+# Tests
+test/
+tests/
+*.test
+*.spec
+
+# Coverage
+coverage/
+*.coverage
+.nyc_output/
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE CLOUD
+# =============================================================================
+
+# AWS (por si acaso)
+.aws/
+aws.config
+aws.credentials
+
+# Azure
+.azure/
+azure.config
+
+# Google Cloud
+.gcloud/
+gcloud.config
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE DOCKER Y CONTAINERS
+# =============================================================================
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.yaml
+.dockerignore
+
+# Containers
+*.container
+containers/
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE CI/CD
+# =============================================================================
+
+# GitHub Actions
+.github/workflows/
+.github/actions/
+
+# GitLab CI
+.gitlab-ci.yml
+.gitlab-ci/
+
+# Jenkins
+Jenkinsfile
+.jenkins/
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE BASE DE DATOS
+# =============================================================================
+
+# Bases de datos
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# Dumps
+*.sql
+*.dump
+*.backup
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE APLICACIONES
+# =============================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+build/
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE SEGURIDAD ADICIONAL
+# =============================================================================
+
+# Archivos de configuración de seguridad
+security/
+secrets/
+.secrets
+secrets.json
+secrets.yaml
+secrets.yml
+
+# Archivos de configuración de autenticación
+auth/
+authentication/
+*.auth
+*.token
+
+# Archivos de configuración de API
+api_keys.txt
+api_secrets.txt
+*.api_key
+*.api_secret
+
+# =============================================================================
+# ARCHIVOS DE CONFIGURACIÓN DE MONITOREO DE SEGURIDAD
+# =============================================================================
+
+# Logs de seguridad
+security.log
+audit.log
+*.audit
+*.security
+
+# =============================================================================
+# COMENTARIOS FINALES
+# =============================================================================
+
+# IMPORTANTE: Este archivo protege información sensible
+# NO eliminar ni modificar sin autorización
+# Revisar regularmente para asegurar que todos los archivos sensibles estén protegidos 

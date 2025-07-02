@@ -1,6 +1,6 @@
-title: "LESSON 2 - Second Webserver in other Availability Domain (AD)"
-description: "FoggyKitchen Terraform OCI Course - LESSON 2 - Second Webserver in other Availability Domain (AD)."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 2 - Second Webserver in other Availability Domain (AD)."
+title: "Arquitectura 2 - Segundo Servidor Web en otro Dominio de Disponibilidad (AD)"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 2 - Segundo Servidor Web en otro Dominio de Disponibilidad (AD)."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 2 - Segundo Servidor Web en otro Dominio de Disponibilidad (AD)."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"

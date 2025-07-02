@@ -1,9 +1,9 @@
 # Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-title: "LESSON 5a - Shared Filesystem (+ Network Security Groups) "
-description: "FoggyKitchen Terraform OCI Course - LESSON 5a - Shared Filesystem (+ Network Security Groups) ."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 5a - Shared Filesystem (+ Network Security Groups)."
+title: "Arquitectura 5a - Sistema de Archivos Compartido (+ Grupos de Seguridad de Red)"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 5a - Sistema de Archivos Compartido (+ Grupos de Seguridad de Red)."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 5a - Sistema de Archivos Compartido (+ Grupos de Seguridad de Red)."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"

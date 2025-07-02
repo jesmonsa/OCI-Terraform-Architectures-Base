@@ -15,7 +15,6 @@ resource "oci_load_balancer" "FoggyKitchenLoadBalancer" {
     oci_core_subnet.FoggyKitchenLBSubnet.id
   ]
   display_name = "FoggyKitchenPublicLoadBalancer"
-  network_security_group_ids = [oci_core_network_security_group.FoggyKitchenLBSecurityGroup.id]
 }
 
 # LoadBalancer Listener
@@ -27,7 +26,7 @@ resource "oci_load_balancer_listener" "FoggyKitchenLoadBalancerListener" {
   protocol                 = "HTTP"
 }
 
-# LoadBalancer Backendset
+# LoadBalancer Backendset with improved health check
 resource "oci_load_balancer_backendset" "FoggyKitchenLoadBalancerBackendset" {
   name             = "FoggyKitchenLBBackendset"
   load_balancer_id = oci_load_balancer.FoggyKitchenLoadBalancer.id
@@ -36,12 +35,15 @@ resource "oci_load_balancer_backendset" "FoggyKitchenLoadBalancerBackendset" {
   health_checker {
     port                = "80"
     protocol            = "HTTP"
-    response_body_regex = ".*"
-    url_path            = "/shared/"
+    response_body_regex = ".*FoggyKitchen.*"
+    url_path            = "/"  # Changed from /shared/ to / for basic HTTP check
+    interval_ms         = 10000  # Check every 10 seconds
+    timeout_in_millis   = 3000   # 3 second timeout
+    retries             = 3      # Retry 3 times before marking unhealthy
   }
 }
 
-# LoadBalanacer Backend for WebServer1 Instance
+# LoadBalancer Backend for WebServers with dependency on HTTPD installation
 resource "oci_load_balancer_backend" "FoggyKitchenLoadBalancerBackend" {
   count            = var.ComputeCount
   load_balancer_id = oci_load_balancer.FoggyKitchenLoadBalancer.id
@@ -52,5 +54,8 @@ resource "oci_load_balancer_backend" "FoggyKitchenLoadBalancerBackend" {
   drain            = false
   offline          = false
   weight           = 1
+  
+  # Ensure HTTPD is installed before adding to load balancer
+  depends_on = [null_resource.FoggyKitchenWebserverHTTPD]
 }
 

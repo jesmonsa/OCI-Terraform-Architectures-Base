@@ -1,9 +1,9 @@
 # Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-title: "LESSON 7 - DBSystem"
-description: "FoggyKitchen Terraform OCI Course - LESSON 7 - DBSystem."
-stackDescription: "FoggyKitchen Terraform OCI Course - LESSON 7 - DBSystem."
+title: "Arquitectura 7 - Sistema de Base de Datos"
+description: "Arquitecturas de Referencia Terraform OCI - Arquitectura 7 - Sistema de Base de Datos."
+stackDescription: "Arquitecturas de Referencia Terraform OCI - Arquitectura 7 - Sistema de Base de Datos."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"

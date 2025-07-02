@@ -61,6 +61,285 @@ resource "oci_core_route_table" "FoggyKitchenRouteTableViaNAT" {
   }
 }
 
+# Security List for Web Tier
+resource "oci_core_security_list" "FoggyKitchenWebSecurityList" {
+  compartment_id = oci_identity_compartment.FoggyKitchenCompartment.id
+  display_name   = "FoggyKitchenWebSecurityList"
+  vcn_id         = oci_core_virtual_network.FoggyKitchenVCN.id
+
+  egress_security_rules {
+    stateless        = "false"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
+    protocol         = "all"
+  }
+
+  # HTTP access from Load Balancer
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.LBSubnet-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+
+  # SSH access from Bastion Host
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.BastionSubnet-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  # VCN-wide TCP access (enables proper SSH connectivity like LESSON7)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+  }
+
+  # NFS access from anywhere in VCN (FSS - TCP 2049)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 2049
+      max = 2049
+    }
+  }
+
+  # NFS Portmapper (UDP 2048)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "17"
+    udp_options {
+      min = 2048
+      max = 2048
+    }
+  }
+
+  # RPC Portmapper (TCP 111)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 111
+      max = 111
+    }
+  }
+
+  # RPC Portmapper (UDP 111)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "17"
+    udp_options {
+      min = 111
+      max = 111
+    }
+  }
+
+  # ICMP for connectivity testing (Path MTU Discovery)
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "1"
+    icmp_options {
+      type = 3
+      code = 4
+    }
+  }
+
+  # ICMP for ping testing
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "1"
+    icmp_options {
+      type = 8
+      code = 0
+    }
+  }
+}
+
+# Security List for Load Balancer
+resource "oci_core_security_list" "FoggyKitchenLoadBalancerSecurityList" {
+  compartment_id = oci_identity_compartment.FoggyKitchenCompartment.id
+  display_name   = "FoggyKitchenLoadBalancerSecurityList"
+  vcn_id         = oci_core_virtual_network.FoggyKitchenVCN.id
+
+  egress_security_rules {
+    stateless        = "false"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
+    protocol         = "all"
+  }
+
+  ingress_security_rules {
+    stateless   = "false"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+
+  ingress_security_rules {
+    stateless   = "false"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
+}
+
+# Security List for Bastion Host
+resource "oci_core_security_list" "FoggyKitchenBastionSecurityList" {
+  compartment_id = oci_identity_compartment.FoggyKitchenCompartment.id
+  display_name   = "FoggyKitchenBastionSecurityList"
+  vcn_id         = oci_core_virtual_network.FoggyKitchenVCN.id
+
+  egress_security_rules {
+    stateless        = "false"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
+    protocol         = "all"
+  }
+
+  # SSH access from internet using dynamic rules (matches LESSON7 pattern)
+  dynamic "ingress_security_rules" {
+    for_each = var.ssh_ports
+    content {
+      protocol = "6"
+      source   = var.bastion_allowed_ip # Restrict to trusted IPs
+      tcp_options {
+        max = ingress_security_rules.value
+        min = ingress_security_rules.value
+      }
+    }
+  }
+
+  # ICMP for connectivity testing
+  ingress_security_rules {
+    stateless   = "false"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    protocol    = "1"
+    icmp_options {
+      type = 8
+      code = 0
+    }
+  }
+}
+
+# Security List for Database
+resource "oci_core_security_list" "FoggyKitchenDBSecurityList" {
+  compartment_id = oci_identity_compartment.FoggyKitchenCompartment.id
+  display_name   = "FoggyKitchenDBSecurityList"
+  vcn_id         = oci_core_virtual_network.FoggyKitchenVCN.id
+
+  egress_security_rules {
+    stateless        = "false"
+    destination      = "0.0.0.0/0"
+    destination_type = "CIDR_BLOCK"
+    protocol         = "all"
+  }
+
+  # SQL*Net access from VCN
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 1521
+      max = 1521
+    }
+  }
+
+  # DataGuard communication within VCN
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 7000
+      max = 7999
+    }
+  }
+
+  # SSH access from Bastion for DB maintenance
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.BastionSubnet-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  # SSH access from Bastion Host
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.BastionSubnet-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  # DataGuard synchronization between primary and standby
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.DBSystemSubnet-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    tcp_options {
+      min = 1521
+      max = 1521
+    }
+  }
+
+  # ICMP for connectivity testing
+  ingress_security_rules {
+    stateless   = "false"
+    source      = var.VCN-CIDR
+    source_type = "CIDR_BLOCK"
+    protocol    = "1"
+    icmp_options {
+      type = 8
+      code = 0
+    }
+  }
+}
+
 # WebSubnet (private)
 resource "oci_core_subnet" "FoggyKitchenWebSubnet" {
   cidr_block                 = var.PrivateSubnet-CIDR
@@ -70,6 +349,7 @@ resource "oci_core_subnet" "FoggyKitchenWebSubnet" {
   vcn_id                     = oci_core_virtual_network.FoggyKitchenVCN.id
   route_table_id             = oci_core_route_table.FoggyKitchenRouteTableViaNAT.id
   dhcp_options_id            = oci_core_dhcp_options.FoggyKitchenDhcpOptions1.id
+  security_list_ids          = [oci_core_security_list.FoggyKitchenWebSecurityList.id]
   prohibit_public_ip_on_vnic = true
 }
 
@@ -82,6 +362,7 @@ resource "oci_core_subnet" "FoggyKitchenLBSubnet" {
   vcn_id            = oci_core_virtual_network.FoggyKitchenVCN.id
   route_table_id    = oci_core_route_table.FoggyKitchenRouteTableViaIGW.id
   dhcp_options_id   = oci_core_dhcp_options.FoggyKitchenDhcpOptions1.id
+  security_list_ids = [oci_core_security_list.FoggyKitchenLoadBalancerSecurityList.id]
 }
 
 # Bastion Subnet (public)
@@ -93,6 +374,7 @@ resource "oci_core_subnet" "FoggyKitchenBastionSubnet" {
   vcn_id            = oci_core_virtual_network.FoggyKitchenVCN.id
   route_table_id    = oci_core_route_table.FoggyKitchenRouteTableViaIGW.id
   dhcp_options_id   = oci_core_dhcp_options.FoggyKitchenDhcpOptions1.id
+  security_list_ids = [oci_core_security_list.FoggyKitchenBastionSecurityList.id]
 }
 
 # DBSystem Subnet (private)
@@ -104,6 +386,7 @@ resource "oci_core_subnet" "FoggyKitchenDBSubnet" {
   vcn_id                     = oci_core_virtual_network.FoggyKitchenVCN.id
   route_table_id             = oci_core_route_table.FoggyKitchenRouteTableViaNAT.id
   dhcp_options_id            = oci_core_dhcp_options.FoggyKitchenDhcpOptions1.id
+  security_list_ids          = [oci_core_security_list.FoggyKitchenDBSecurityList.id]
   prohibit_public_ip_on_vnic = true
 }
 

@@ -28,13 +28,13 @@ data "oci_core_images" "OSImage" {
 }
 
 # Compute VNIC Attachment DataSource
-data "oci_core_vnic_attachments" "FoggyKitchenWebserver1_VNIC1_attach" {
+data "oci_core_vnic_attachments" "EnterpriseWebserver1_VNIC1_attach" {
   availability_domain = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[0], "name") : var.availability_domain_name
-  compartment_id      = oci_identity_compartment.FoggyKitchenCompartment.id
-  instance_id         = oci_core_instance.FoggyKitchenWebserver1.id
+  compartment_id      = oci_identity_compartment.EnterpriseCompartment.id
+  instance_id         = oci_core_instance.EnterpriseWebserver1.id
 }
 
 # Compute VNIC DataSource
-data "oci_core_vnic" "FoggyKitchenWebserver1_VNIC1" {
-  vnic_id = data.oci_core_vnic_attachments.FoggyKitchenWebserver1_VNIC1_attach.vnic_attachments.0.vnic_id
+data "oci_core_vnic" "EnterpriseWebserver1_VNIC1" {
+  vnic_id = data.oci_core_vnic_attachments.EnterpriseWebserver1_VNIC1_attach.vnic_attachments.0.vnic_id
 }
