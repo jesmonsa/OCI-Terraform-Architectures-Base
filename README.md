@@ -1,4 +1,6 @@
-# FoggyKitchen Terraform/OpenTofu OCI Course
+# 01-oci-terraform-foundations
+
+Repositorio con ejemplos y configuraciones base de Terraform para desplegar infraestructura en Oracle Cloud Infrastructure (OCI).
 
 ## Course description
 
