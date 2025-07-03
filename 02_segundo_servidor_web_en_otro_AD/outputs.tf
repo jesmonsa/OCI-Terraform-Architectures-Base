@@ -1,8 +1,8 @@
 # WebServer Instances Public IPs
-output "FoggyKitchenWebserver_Public_IPs_Formatted" {
+output "EnterpriseWebserver_Public_IPs_Formatted" {
   value = {
-    for i, ip in data.oci_core_vnic.FoggyKitchenWebserver_VNIC1[*].public_ip_address :
-    oci_core_instance.FoggyKitchenWebserver[i].display_name => ip
+    for i, ip in data.oci_core_vnic.EnterpriseWebserver_VNIC1[*].public_ip_address :
+    oci_core_instance.EnterpriseWebserver[i].display_name => ip
   }
 }
 

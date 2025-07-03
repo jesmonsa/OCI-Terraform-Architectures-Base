@@ -63,7 +63,7 @@ variable "ComputeCount" {
 }
 
 variable "Shape" {
-  default = "VM.Standard.E4.Flex"
+  default = "VM.Standard.A1.Flex"
   description = "Shape for the compute instance."
   validation {
     condition     = contains(["VM.Standard.E3.Flex", "VM.Standard.E4.Flex", "VM.Standard.A1.Flex", "VM.Optimized3.Flex"], var.Shape)
@@ -84,12 +84,12 @@ variable "FlexShapeMemory" {
 # Operating System Variables
 variable "instance_os" {
   description = "The operating system for the compute instance, such as 'Oracle Linux' or 'Ubuntu'."
-  default = "Oracle Linux"
+  default = "Canonical Ubuntu"
 }
 
 variable "linux_os_version" {
-  description = "The version of the operating system for the compute instance. For example, '8' for Oracle Linux 8."
-  default = "8"
+  description = "The version of the operating system for the compute instance. For example, '22.04' for Ubuntu 22.04."
+  default = "22.04"
 }
 
 # Security Configuration Variables

@@ -4,15 +4,17 @@
 
 ### 📋 Descripción General
 
-Esta arquitectura de referencia demuestra la implementación más básica de recursos en Oracle Cloud Infrastructure (OCI), creando un servidor web simple accesible desde Internet. Es el punto de partida ideal para comprender los conceptos fundamentales de la infraestructura como código en OCI.
+Esta arquitectura de referencia demuestra la implementación más básica de recursos en Oracle Cloud Infrastructure (OCI), creando un servidor web moderno y completamente funcional accesible desde Internet. Es el punto de partida ideal para comprender los conceptos fundamentales de la infraestructura como código en OCI, combinando Terraform para la infraestructura y Ansible para la configuración automática.
 
 ### 🎯 Objetivo
 
-Crear la configuración más simple de recursos OCI que incluye:
-- Un compartimento para organizar los recursos
-- Una Red Virtual en la Nube (VCN) con su subred pública
-- Una instancia de máquina virtual que funciona como servidor web
-- Configuración de seguridad básica para acceso HTTP/HTTPS y SSH
+Crear una infraestructura completa y funcional que incluye:
+- Un compartimento enterprise para organizar los recursos
+- Una Red Virtual en la Nube (VCN) con subred pública optimizada
+- Una instancia de máquina virtual Ubuntu con servidor web Apache
+- Configuración de seguridad multi-capa (OCI Security Lists + iptables)
+- Página web moderna con diseño responsive y información del sistema
+- Aprovisionamiento 100% automático con Ansible
 
 ### 🏛️ Arquitectura
 
@@ -31,8 +33,9 @@ Crear la configuración más simple de recursos OCI que incluye:
 │  │  │  │         (10.0.1.0/24)                  │    │    │ │
 │  │  │  │                                         │    │    │ │
 │  │  │  │  ┌─────────────────────────────────┐    │    │    │ │
-│  │  │  │  │      🖥️ Servidor Web 1         │    │    │    │ │
-│  │  │  │  │    (Oracle Linux + Apache)     │    │    │    │ │
+│  │  │  │  │      🖥️ Servidor Web Único      │    │    │    │ │
+│  │  │  │  │    (Ubuntu 22.04 + Apache2)    │    │    │    │ │
+│  │  │  │  │    VM.Standard.E3.Flex (1CPU)  │    │    │    │ │
 │  │  │  │  │         IP Pública             │    │    │    │ │
 │  │  │  │  └─────────────────────────────────┘    │    │    │ │
 │  │  │  └─────────────────────────────────────────┘    │    │ │
@@ -50,11 +53,13 @@ Crear la configuración más simple de recursos OCI que incluye:
 
 ### ✨ Características
 
-- **🔧 Simplicidad**: Configuración mínima para comenzar con OCI
-- **🌍 Acceso Público**: Servidor web accesible directamente desde Internet
-- **🔒 Seguridad Básica**: Lista de seguridad configurada para HTTP, HTTPS y SSH
-- **⚡ Aprovisionamiento Automático**: Instalación automática de Apache y página web de ejemplo
-- **📍 Multi-AD**: La subred abarca todos los dominios de disponibilidad (AD1-AD3)
+- **🔧 Simplicidad**: Configuración mínima optimizada para comenzar con OCI
+- **🌍 Acceso Público**: Servidor web con página moderna accesible desde Internet
+- **🔒 Seguridad Multi-Capa**: OCI Security Lists + iptables configurado automáticamente
+- **⚡ Aprovisionamiento Inteligente**: Ansible con retry logic y error handling
+- **🎨 Página Web Moderna**: Diseño responsive con información del sistema en tiempo real
+- **📍 Flexibilidad Multi-AD**: Subred regional que abarca todos los dominios de disponibilidad
+- **🛠️ Stack Completo**: Ubuntu 22.04 + Apache2 + SSL ready + Firewall configurado
 
 ### 🛠️ Recursos Desplegados
 
@@ -66,20 +71,36 @@ Crear la configuración más simple de recursos OCI que incluye:
 | **Internet Gateway** | `oci_core_internet_gateway` | Puerta de enlace para acceso a Internet |
 | **Tabla de Rutas** | `oci_core_route_table` | Enrutamiento del tráfico hacia Internet Gateway |
 | **Lista de Seguridad** | `oci_core_security_list` | Reglas de firewall (SSH:22, HTTP:80, HTTPS:443) |
-| **Instancia Compute** | `oci_core_instance` | Máquina virtual con Oracle Linux |
+| **Instancia Compute** | `oci_core_instance` | VM Ubuntu 22.04 con Apache2 configurado |
 | **Claves SSH** | `tls_private_key` | Par de claves para acceso SSH |
 
-### 🔐 Configuración de Seguridad
+### 🛡️ Configuración de Seguridad Multi-Capa
 
-#### Reglas de Entrada (Ingress)
+#### 🌐 Capa OCI - Security Lists
 - **SSH**: Puerto 22 desde cualquier IP (0.0.0.0/0)
 - **HTTP**: Puerto 80 desde cualquier IP (0.0.0.0/0)
 - **HTTPS**: Puerto 443 desde cualquier IP (0.0.0.0/0)
+- **Egress**: Todo el tráfico permitido hacia cualquier destino
 
-#### Reglas de Salida (Egress)
-- **Todo el tráfico**: Permitido hacia cualquier destino
+#### 🔥 Capa Sistema - IPTables (Configurado por Ansible)
+- **Política por defecto**: DROP (deniega todo excepto lo explícitamente permitido)
+- **SSH**: Puerto 22 con conexiones establecidas y nuevas
+- **HTTP**: Puerto 80 con conexiones establecidas y nuevas  
+- **HTTPS**: Puerto 443 con conexiones establecidas y nuevas
+- **Loopback**: Tráfico local permitido
+- **Conexiones establecidas**: Tráfico de respuesta permitido
 
-> ⚠️ **Nota de Seguridad**: Esta configuración permite acceso SSH desde cualquier IP. En entornos de producción, se recomienda restringir el acceso SSH a IPs específicas.
+#### 🔧 Características de Seguridad Avanzadas
+- ✅ **Firewall persistente** - Reglas guardadas automáticamente
+- ✅ **Sin prompts interactivos** - Configuración totalmente automatizada
+- ✅ **Orden de reglas optimizado** - ALLOW antes que DROP para evitar bloqueos
+- ✅ **Logs de seguridad** - Eventos registrados para auditoría
+
+> ⚠️ **Nota de Seguridad**: Esta configuración permite acceso SSH desde cualquier IP para fines educativos. En entornos de producción, se recomienda:
+> - Usar un bastion host para acceso SSH
+> - Restringir SSH a IPs específicas
+> - Implementar autenticación multi-factor
+> - Usar Network Security Groups para control granular
 
 ---
 
@@ -88,9 +109,12 @@ Crear la configuración más simple de recursos OCI que incluye:
 ### 🔧 Prerrequisitos
 
 - **Terraform** >= 0.15.0 o **OpenTofu** >= 1.0.0
+- **Ansible** >= 2.9 (para aprovisionamiento automático)
 - Cuenta activa de Oracle Cloud Infrastructure
 - Credenciales de API configuradas
 - Cliente Git instalado
+
+> 📝 **Nota**: Esta arquitectura usa Ansible para el aprovisionamiento del servidor web, lo que proporciona mayor velocidad y mejor gestión de configuración que remote-exec. Ver [ANSIBLE_REQUIREMENTS.md](ANSIBLE_REQUIREMENTS.md) para instrucciones de instalación.
 
 ---
 
@@ -160,7 +184,21 @@ git clone https://github.com/usuario/arquitecturas-oci-terraform.git
 cd arquitecturas-oci-terraform/01_servidor_web_unico
 ```
 
-### 🔄 **2. Inicializar el Proyecto**
+### ✅ **2. Validar Configuración**
+
+```bash
+# Ejecutar script de validación completa
+./validate_config.sh
+```
+
+Este script verificará:
+- Instalación de Terraform/OpenTofu
+- Instalación de Ansible
+- Configuración de variables OCI
+- Presencia de todos los archivos necesarios
+- Sintaxis de Ansible
+
+### 🔄 **3. Inicializar el Proyecto**
 
 <table>
 <tr>
@@ -185,7 +223,7 @@ tofu init
 </tr>
 </table>
 
-### 📋 **3. Planificar el Despliegue**
+### 📋 **4. Planificar el Despliegue**
 
 <table>
 <tr>
@@ -210,7 +248,7 @@ tofu plan
 </tr>
 </table>
 
-### ✅ **4. Aplicar los Cambios**
+### ✅ **5. Aplicar los Cambios**
 
 <table>
 <tr>
@@ -235,7 +273,7 @@ tofu apply
 </tr>
 </table>
 
-### 🧹 **5. Limpiar Recursos**
+### 🧹 **6. Limpiar Recursos**
 
 <table>
 <tr>
@@ -297,10 +335,27 @@ Después de un despliegue exitoso, obtendrás las siguientes salidas:
 
 ### 🌐 Acceso al Servidor Web
 
-Una vez completado el despliegue:
+Una vez completado el despliegue (generalmente 3-5 minutos):
 
-1. **Página Web**: Visita `http://[IP_PUBLICA]` en tu navegador
-2. **SSH**: Conecta usando `ssh -i clave_privada opc@[IP_PUBLICA]`
+1. **Página Web Moderna**: Visita `http://[IP_PUBLICA]` en tu navegador
+   - Diseño moderno con gradientes y animaciones
+   - Información del sistema en tiempo real
+   - Responsive design para móviles y tablets
+   - Stack tecnológico visible
+
+2. **SSH**: Conecta usando `ssh -i id_rsa_enterprise ubuntu@[IP_PUBLICA]`
+   - Usuario: `ubuntu` (no `opc`)
+   - Clave: `id_rsa_enterprise` (generada automáticamente)
+
+### 🎨 Características de la Página Web
+
+La página web incluye:
+- 🚀 **Header dinámico** con información de la arquitectura
+- 📊 **Cards informativos** con datos del sistema (IP, hostname, OS)
+- 🛠️ **Stack tecnológico** mostrado con badges
+- ✅ **Indicadores de estado** del servidor y servicios
+- 📱 **Diseño responsive** que se adapta a todos los dispositivos
+- ⏰ **Timestamp** de despliegue actualizado automáticamente
 
 ---
 
@@ -310,21 +365,27 @@ Una vez completado el despliegue:
 
 | Variable | Descripción | Valor por Defecto | Ejemplo |
 |----------|-------------|-------------------|---------|
-| `VCN-CIDR` | CIDR de la VCN | `10.0.0.0/16` | `192.168.0.0/16` |
-| `Subnet-CIDR` | CIDR de la subred | `10.0.1.0/24` | `192.168.1.0/24` |
-| `Shape` | Tipo de instancia | `VM.Standard.E4.Flex` | `VM.Standard.E3.Flex` |
+| `vcn_cidr` | CIDR de la VCN | `10.0.0.0/16` | `192.168.0.0/16` |
+| `subnet_cidr` | CIDR de la subred | `10.0.1.0/24` | `192.168.1.0/24` |
+| `Shape` | Tipo de instancia | `VM.Standard.E3.Flex` | `VM.Standard.E4.Flex` |
 | `FlexShapeOCPUS` | Número de CPUs | `1` | `2` |
 | `FlexShapeMemory` | Memoria en GB | `2` | `4` |
+| `instance_os` | Sistema operativo | `Canonical Ubuntu` | `Oracle Linux` |
+| `linux_os_version` | Versión del SO | `22.04` | `20.04` |
+| `service_ports` | Puertos abiertos | `[80, 443, 22]` | `[80, 22]` |
 
 ### ⚙️ Ejemplo de Personalización
 
 ```hcl
 # terraform.tfvars
-VCN-CIDR = "192.168.0.0/16"
-Subnet-CIDR = "192.168.1.0/24"
-Shape = "VM.Standard.E3.Flex"
+vcn_cidr = "192.168.0.0/16"
+subnet_cidr = "192.168.1.0/24"
+Shape = "VM.Standard.E4.Flex"
 FlexShapeOCPUS = 2
 FlexShapeMemory = 4
+instance_os = "Oracle Linux"
+linux_os_version = "8"
+service_ports = [80, 22]  # Solo HTTP y SSH
 ```
 
 ---
@@ -334,7 +395,20 @@ FlexShapeMemory = 4
 ### ❌ Problemas Comunes
 
 <details>
-<summary>🔐 <strong>Error de Autenticación</strong></summary>
+<summary>🔐 <strong>Error de Autenticación SSH/Ansible</strong></summary>
+
+**Problema**: `no such identity: mi_llave_oci.pem: No such file or directory`
+
+**Solución**:
+1. Ejecuta el script de diagnóstico: `./debug_ssh.sh`
+2. Verifica que Terraform haya completado exitosamente: `terraform apply`
+3. Comprueba que la clave existe: `ls -la mi_llave_oci.pem`
+4. Asegúrate de que la clave tenga permisos correctos: `chmod 600 mi_llave_oci.pem`
+
+</details>
+
+<details>
+<summary>🔐 <strong>Error de Autenticación OCI</strong></summary>
 
 **Problema**: `Error: 401-NotAuthenticated`
 
@@ -395,6 +469,15 @@ terraform validate
 
 # Ver las salidas
 terraform output
+
+# Script de diagnóstico SSH específico
+./debug_ssh.sh
+
+# Verificar conectividad manual SSH
+ssh -i mi_llave_oci.pem opc@$(terraform output -raw EnterpriseWebserver1PublicIP | tr -d '[]" ')
+
+# Ver logs de Ansible
+tail -f ansible.log
 ```
 
 ---
@@ -406,6 +489,13 @@ terraform output
 - [Documentación de Terraform OCI Provider](https://registry.terraform.io/providers/oracle/oci/latest/docs)
 - [Guía de Oracle Cloud Infrastructure](https://docs.oracle.com/en-us/iaas/Content/home.htm)
 - [Mejores Prácticas de Terraform](https://www.terraform.io/docs/cloud/guides/recommended-practices/index.html)
+
+### 📁 Documentación del Proyecto
+
+- [ANSIBLE_REQUIREMENTS.md](ANSIBLE_REQUIREMENTS.md) - Requisitos e instalación de Ansible
+- [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) - Mapa completo de dependencias de recursos
+- [validate_config.sh](validate_config.sh) - Script de validación de configuración
+- [debug_ssh.sh](debug_ssh.sh) - Script de diagnóstico SSH
 
 ### 🎓 Próximos Pasos
 

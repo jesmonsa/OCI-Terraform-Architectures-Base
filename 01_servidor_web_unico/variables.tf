@@ -22,6 +22,7 @@ variable "compartment_ocid" {
 
 variable "region" {
   description = "The region where OCI resources will be deployed, such as 'us-ashburn-1' or 'eu-frankfurt-1'."
+  default     = "us-ashburn-1"
 }
 
 # Availability Domain Configuration
@@ -33,31 +34,31 @@ variable "availability_domain_name" {
 
 # Networking Variables
 
-variable "VCN-CIDR" {
+variable "vcn_cidr" {
   default = "10.0.0.0/16"
   description = "CIDR block for the Virtual Cloud Network."
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", var.VCN-CIDR))
-    error_message = "VCN-CIDR must be a valid CIDR block."
+    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", var.vcn_cidr))
+    error_message = "vcn_cidr must be a valid CIDR block."
   }  
 }
 
-variable "Subnet-CIDR" {
+variable "subnet_cidr" {
   default = "10.0.1.0/24"
   description = "CIDR block for the Subnet Network."
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", var.Subnet-CIDR))
-    error_message = "Subnet-CIDR must be a valid CIDR block."
+    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", var.subnet_cidr))
+    error_message = "subnet_cidr must be a valid CIDR block."
   }
 }
 
 # Compute Variables
 variable "Shape" {
-  default = "VM.Standard.E4.Flex"
+  default = "VM.Standard.E3.Flex"
   description = "Shape for the compute instance."
   validation {
     condition     = contains(["VM.Standard.E3.Flex", "VM.Standard.E4.Flex", "VM.Standard.A1.Flex", "VM.Optimized3.Flex"], var.Shape)
-    error_message = "Shape must be one of the supported shapes: VM.Standard.E3.Flex, VM.Standard.E4.Flex, VM.Standard.A1.Flex, or VM.Optimized3.Flex."
+    error_message = "Shape must be VM.Standard.E3/E4/A1.Flex or VM.Optimized3.Flex."
   }
 }
 
@@ -74,12 +75,12 @@ variable "FlexShapeMemory" {
 # Operating System Variables
 variable "instance_os" {
   description = "The operating system for the compute instance, such as 'Oracle Linux' or 'Ubuntu'."
-  default = "Oracle Linux"
+  default = "Canonical Ubuntu"
 }
 
 variable "linux_os_version" {
-  description = "The version of the operating system for the compute instance. For example, '8' for Oracle Linux 8."
-  default = "8"
+  description = "The version of the operating system for the compute instance. For example, '22.04' for Ubuntu 22.04."
+  default = "22.04"
 }
 
 # Security Configuration Variables

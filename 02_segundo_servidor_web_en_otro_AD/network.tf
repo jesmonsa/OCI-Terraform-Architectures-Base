@@ -1,7 +1,6 @@
 # VCN
 resource "oci_core_virtual_network" "EnterpriseVCN" {
-  depends_on     = [time_sleep.wait_compartment_replication]
-  cidr_block     = var.vcn_cidr
+  cidr_block     = var.VCN-CIDR
   dns_label      = "EnterpriseVCN"
   compartment_id = oci_identity_compartment.EnterpriseCompartment.id
   display_name   = "EnterpriseVCN"
@@ -20,7 +19,7 @@ resource "oci_core_dhcp_options" "EnterpriseDhcpOptions1" {
 
   options {
     type                = "SearchDomain"
-    search_domain_names = ["enterprise.local"]
+    search_domain_names = ["enterprise.com"]
   }
 }
 
@@ -66,11 +65,15 @@ resource "oci_core_security_list" "EnterpriseSecurityList" {
     }
   }
 
+  ingress_security_rules {
+    protocol = "6"
+    source   = var.VCN-CIDR
+  }
 }
 
 # Subnet
 resource "oci_core_subnet" "EnterpriseWebSubnet" {
-  cidr_block        = var.subnet_cidr
+  cidr_block        = var.Subnet-CIDR
   display_name      = "EnterpriseWebSubnet"
   dns_label         = "EnterpriseN1"
   compartment_id    = oci_identity_compartment.EnterpriseCompartment.id
@@ -78,4 +81,55 @@ resource "oci_core_subnet" "EnterpriseWebSubnet" {
   route_table_id    = oci_core_route_table.EnterpriseRouteTableViaIGW.id
   dhcp_options_id   = oci_core_dhcp_options.EnterpriseDhcpOptions1.id
   security_list_ids = [oci_core_security_list.EnterpriseSecurityList.id]
+}
+
+# Network Security Group (NSG)
+# Control de firewall a nivel de VNIC para sobreescribir cualquier política oculta.
+resource "oci_core_network_security_group" "EnterpriseNSG" {
+  compartment_id = oci_identity_compartment.EnterpriseCompartment.id
+  vcn_id         = oci_core_virtual_network.EnterpriseVCN.id
+  display_name   = "Enterprise_NSG"
+}
+
+# Regla NSG para permitir SSH (puerto 22)
+resource "oci_core_network_security_group_security_rule" "Allow_SSH_NSG_Rule" {
+  network_security_group_id = oci_core_network_security_group.EnterpriseNSG.id
+  direction                 = "INGRESS"
+  protocol                  = "6" # TCP
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  tcp_options {
+    destination_port_range {
+      min = 22
+      max = 22
+    }
+  }
+}
+
+# Regla NSG para permitir HTTP (puerto 80)
+resource "oci_core_network_security_group_security_rule" "Allow_HTTP_NSG_Rule" {
+  network_security_group_id = oci_core_network_security_group.EnterpriseNSG.id
+  direction                 = "INGRESS"
+  protocol                  = "6" # TCP
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  tcp_options {
+    destination_port_range {
+      min = 80
+      max = 80
+    }
+  }
+}
+
+# Regla NSG para permitir ICMP (Ping)
+resource "oci_core_network_security_group_security_rule" "Allow_ICMP_NSG_Rule" {
+  network_security_group_id = oci_core_network_security_group.EnterpriseNSG.id
+  direction                 = "INGRESS"
+  protocol                  = "1" # ICMP
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  icmp_options {
+    type = 8 # Echo Request
+  }
+  description = "Allow Ping from anywhere"
 }

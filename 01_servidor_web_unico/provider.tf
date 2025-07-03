@@ -5,6 +5,22 @@ terraform {
       source  = "hashicorp/oci"
       version = ">= 6.21.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.1.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = ">= 2.4.0"
+    }
   }
 }
 

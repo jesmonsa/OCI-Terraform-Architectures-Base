@@ -15,26 +15,19 @@ data "oci_identity_availability_domains" "ADs" {
 
 # Images DataSource
 data "oci_core_images" "OSImage" {
-  compartment_id           = var.compartment_ocid
+  compartment_id           = var.tenancy_ocid
   operating_system         = var.instance_os
   operating_system_version = var.linux_os_version
   shape                    = var.Shape
 
   filter {
     name   = "display_name"
-    values = ["^.*Oracle[^G]*$"]
+    values = ["^.*Ubuntu.*$"]
     regex  = true
   }
+
+  sort_by    = "TIMECREATED"
+  sort_order = "DESC"
 }
 
-# Compute VNIC Attachment DataSource
-data "oci_core_vnic_attachments" "EnterpriseWebserver1_VNIC1_attach" {
-  availability_domain = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[0], "name") : var.availability_domain_name
-  compartment_id      = oci_identity_compartment.EnterpriseCompartment.id
-  instance_id         = oci_core_instance.EnterpriseWebserver1.id
-}
 
-# Compute VNIC DataSource
-data "oci_core_vnic" "EnterpriseWebserver1_VNIC1" {
-  vnic_id = data.oci_core_vnic_attachments.EnterpriseWebserver1_VNIC1_attach.vnic_attachments.0.vnic_id
-}
