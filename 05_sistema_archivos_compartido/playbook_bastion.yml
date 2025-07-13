@@ -1,0 +1,107 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Kill any running apt processes
+      shell: |
+        pkill -f apt || true
+        pkill -f dpkg || true
+        sleep 5
+      ignore_errors: yes
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      retries: 3
+      delay: 10
+      register: apt_update_result
+      until: apt_update_result is succeeded
+
+    - name: Install essential packages for bastion host
+      apt:
+        name:
+          - iptables-persistent
+          - fail2ban
+          - htop
+          - net-tools
+          - curl
+          - wget
+        state: present
+      retries: 3
+      delay: 10
+
+    - name: Flush all INPUT chain rules to ensure a clean slate
+      iptables:
+        chain: INPUT
+        flush: yes
+
+    - name: Insert rule to allow SSH traffic on port 22
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "1"
+        protocol: tcp
+        destination_port: "22"
+        jump: ACCEPT
+        comment: "Allow SSH traffic"
+      notify: Save iptables rules
+
+    - name: Insert rule to allow ICMP (Ping)
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "2"
+        protocol: icmp
+        icmp_type: "echo-request"
+        jump: ACCEPT
+        comment: "Allow Ping"
+      notify: Save iptables rules
+
+    - name: Configure fail2ban for SSH protection
+      template:
+        src: fail2ban_sshd.conf.j2
+        dest: /etc/fail2ban/jail.d/sshd.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
+
+    - name: Create welcome message for bastion host
+      copy:
+        content: |
+          ========================================
+          🛡️  BASTION HOST - ENTERPRISE
+          ========================================
+          
+          Este es el Bastion Host para acceder a los servidores web privados.
+          
+          Para conectarte a un servidor web:
+          ssh -i id_rsa_enterprise -o ProxyCommand="ssh -i id_rsa_enterprise -W %h:%p ubuntu@[BASTION_IP]" ubuntu@[WEBSERVER_PRIVATE_IP]
+          
+          Servidores web disponibles:
+          - WebServer1: [WEBSERVER1_PRIVATE_IP]
+          - WebServer2: [WEBSERVER2_PRIVATE_IP]
+          - WebServer3: [WEBSERVER3_PRIVATE_IP]
+          
+          Protegido con Security Lists + File Storage Service
+          ========================================
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure fail2ban is running and enabled
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Save iptables rules
+      command: netfilter-persistent save
+      
+    - name: Restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted 

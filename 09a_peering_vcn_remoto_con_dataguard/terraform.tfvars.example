@@ -1,0 +1,101 @@
+# ===============================
+# Ejemplo de variables para OCI (rellenar con tus datos reales, NO usar en producción)
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region1          = "eu-frankfurt-1"
+region2          = "eu-amsterdam-1"
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# ===============================
+# Disponibilidad y Red
+availability_domain_name  = "AD-1"
+availability_domain_name2 = "AD-1"
+VCN-CIDR                 = "10.0.0.0/16"
+PrivateSubnet-CIDR       = "10.0.1.0/24"
+LBSubnet-CIDR            = "10.0.2.0/24"
+BastionSubnet-CIDR       = "10.0.3.0/24"
+DBSystemSubnet-CIDR      = "10.0.4.0/24"
+VCN-CIDR2                = "192.168.0.0/16"
+BackendSubnet-CIDR       = "192.168.1.0/24"
+bastion_allowed_ip       = "0.0.0.0/0" # Cambia por tu IP real
+
+# ===============================
+# Cómputo y Bastion
+ComputeCount                = 2
+WebserverShape              = "VM.Standard.E4.Flex"
+WebserverFlexShapeOCPUS     = 1
+WebserverFlexShapeMemory    = 2
+BastionShape                = "VM.Standard.E4.Flex"
+BastionFlexShapeOCPUS       = 1
+BastionFlexShapeMemory      = 2
+BackendServerShape          = "VM.Standard.E4.Flex"
+BackendServerFlexShapeOCPUS = 1
+BackendServerFlexShapeMemory= 2
+
+# ===============================
+# Sistema Operativo
+instance_os      = "Oracle Linux"
+linux_os_version = "8"
+
+# ===============================
+# Seguridad
+webservice_ports = ["80", "443"]
+ssh_ports        = ["22"]
+
+# ===============================
+# Load Balancer
+lb_shape          = "flexible"
+flex_lb_min_shape = 10
+flex_lb_max_shape = 100
+
+# ===============================
+# File Storage Service (FSS)
+MountTargetIPAddress = "10.0.1.25"
+fss_ingress_tcp_ports = [111, 2048, 2049, 2050]
+fss_ingress_udp_ports = [111, 2048]
+fss_egress_tcp_ports  = [111, 2048, 2049, 2050]
+fss_egress_udp_ports  = [111]
+
+# ===============================
+# Volúmenes en bloque
+volume_size_in_gbs = 100
+vpus_per_gb        = 10
+
+# ===============================
+# Base de Datos Primaria
+DBNodeCount            = 1
+DBNodeShape            = "VM.Standard.E4.Flex"
+CPUCoreCount           = 1
+DBEdition              = "ENTERPRISE_EDITION"
+DBAdminPassword        = "(usar variable de entorno, no poner aquí)"
+DBName                 = "PRIMDB01"
+DBVersion              = "19.0.0.0"
+DBDisplayName          = "PrimaryDBSystem"
+DBDiskRedundancy       = "NORMAL"
+DBSystemDisplayName    = "PrimaryDBSystem"
+DBNodeDomainName       = "primary.example.com"
+HostUserName           = "opc"
+NCharacterSet          = "AL16UTF16"
+CharacterSet           = "AL32UTF8"
+DBWorkload             = "OLTP"
+PDBName                = "PRIMPDB1"
+DBDataStorageSizeInGB  = 256
+DBLicenseModel         = "LICENSE_INCLUDED"
+DBHomeDisplayName      = "PrimaryDBHome"
+
+# ===============================
+# Base de Datos Standby (Data Guard)
+DBStandbySystemDisplayName = "StandbyDBSystem"
+DBNodeHostName             = "primarydbhost"
+DBStandbyNodeHostName      = "standbydbhost"
+DBStandbyNodeShape         = "VM.Standard.E4.Flex"
+
+# ===============================
+# Puertos y SQL*Net
+sqlnet_ports = ["1521"]
+
+# ===============================
+# Otros ejemplos útiles
+# Puedes agregar aquí más variables según tu personalización 

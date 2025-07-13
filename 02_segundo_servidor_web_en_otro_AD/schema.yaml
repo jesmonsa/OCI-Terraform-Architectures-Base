@@ -1,6 +1,6 @@
-title: "LESSON 2 - Second Webserver in other Availability Domain (AD)"
-description: "Enterprise Terraform OCI Course - LESSON 2 - Second Webserver in other Availability Domain (AD)."
-stackDescription: "Enterprise Terraform OCI Course - LESSON 2 - Second Webserver in other Availability Domain (AD)."
+title: "02_segundo_servidor_web_en_otro_AD"
+description: "Arquitectura de referencia: 02_segundo_servidor_web_en_otro_AD. Despliegue de un segundo servidor web en otro Dominio de Disponibilidad (AD) en OCI."
+stackDescription: "Arquitectura de referencia: 02_segundo_servidor_web_en_otro_AD. Despliegue de un segundo servidor web en otro Dominio de Disponibilidad (AD) en OCI."
 schemaVersion: 1.1.0
 version: "20201028"
 locale: "en"
@@ -117,7 +117,7 @@ variables:
     required: false
     default: "10.0.1.0/24"
     pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
-    title: Subnet CIDR"
+    title: "Subnet CIDR"
     description: "Choose single, contiguous IPv4 CIDR block for the Subnet"
 
   Shape:

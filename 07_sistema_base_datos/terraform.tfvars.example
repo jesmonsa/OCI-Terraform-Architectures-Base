@@ -1,0 +1,104 @@
+# =============================================================================
+# CONFIGURACIÓN DE AUTENTICACIÓN OCI
+# =============================================================================
+# IMPORTANTE: Reemplaza estos valores con tus credenciales reales de OCI
+# NO uses estos valores de ejemplo en producción
+
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# =============================================================================
+# CONFIGURACIÓN DE RED
+# =============================================================================
+vcn_cidr               = "10.0.0.0/16"
+private_subnet_cidr    = "10.0.1.0/24"    # Subnet para servidores web
+lb_subnet_cidr         = "10.0.2.0/24"    # Subnet para balanceador de carga
+bastion_subnet_cidr    = "10.0.3.0/24"    # Subnet para host bastión
+fss_subnet_cidr        = "10.0.4.0/24"    # Subnet para File Storage System
+db_subnet_cidr         = "10.0.5.0/24"    # Subnet para base de datos
+bastion_allowed_ip     = "0.0.0.0/0"      # Reemplaza con tu rango de IP de gestión
+
+# =============================================================================
+# CONFIGURACIÓN DE COMPUTE
+# =============================================================================
+ComputeCount = 3  # Número de servidores web (1-3)
+
+# Configuración de Servidores Web
+WebserverShape           = "VM.Standard.A1.Flex"  # Shape ARM para eficiencia de costos
+WebserverFlexShapeOCPUS  = 1
+WebserverFlexShapeMemory = 2
+
+# Configuración de Bastión
+BastionShape           = "VM.Standard.A1.Flex"
+BastionFlexShapeOCPUS  = 1
+BastionFlexShapeMemory = 2
+
+# =============================================================================
+# CONFIGURACIÓN DE BASE DE DATOS (ENTERPRISE)
+# =============================================================================
+# IMPORTANTE: Configura la contraseña de administrador via variable de entorno:
+# export TF_VAR_db_admin_password="TuContraseñaSegura123!"
+
+# Configuración del Sistema de Base de Datos
+db_name               = "ENTPDB01"  # <= 8 caracteres (máximo 8)
+db_pdb_name           = "ENTPPDB1"  # <= 8 caracteres (máximo 8)
+db_node_shape         = "VM.Standard3.Flex"
+db_cpu_core_count     = 1  # Mínimo para desarrollo/pruebas
+db_node_count         = 1
+db_node_hostname       = "enterprisedb"
+db_node_domain_name    = "enterprise.com"
+db_system_display_name = "EnterpriseDBSystem"
+db_workload           = "OLTP"
+db_character_set      = "AL32UTF8"
+db_ncharacter_set     = "AL16UTF16"
+
+# Configuración de Almacenamiento
+db_data_storage_size_in_gb = 256
+db_storage_percentage     = 80
+db_disk_redundancy       = "NORMAL"      # HIGH para producción
+db_license_model         = "LICENSE_INCLUDED"
+db_edition              = "STANDARD_EDITION"  # ENTERPRISE_EDITION para producción
+
+# =============================================================================
+# CONFIGURACIÓN DE BACKUP
+# =============================================================================
+db_backup_retention_days = 30
+
+# =============================================================================
+# CONFIGURACIÓN DEL SISTEMA OPERATIVO
+# =============================================================================
+instance_os         = "Canonical Ubuntu"
+linux_os_version    = "22.04"
+
+# =============================================================================
+# CONFIGURACIÓN DE SEGURIDAD
+# =============================================================================
+webservice_ports = ["80", "443"]
+ssh_ports        = ["22"]
+
+# =============================================================================
+# CONFIGURACIÓN DEL BALANCEADOR DE CARGA
+# =============================================================================
+lb_shape          = "flexible"
+flex_lb_min_shape = 10
+flex_lb_max_shape = 100
+
+# =============================================================================
+# CONFIGURACIÓN DE FILE STORAGE SERVICE (FSS)
+# =============================================================================
+MountTargetIPAddress = "10.0.4.25"
+
+# =============================================================================
+# CONFIGURACIÓN DE CLAVE SSH
+# =============================================================================
+ssh_private_key_filename = "id_rsa_enterprise"
+
+# =============================================================================
+# CONFIGURACIÓN DE VOLÚMENES EN BLOQUE
+# =============================================================================
+volume_size_in_gbs = 100
+vpus_per_gb        = 10  # 0=Bajo Costo, 10=Balanceado, 20=Alto Rendimiento, 30=Ultra Alto Rendimiento

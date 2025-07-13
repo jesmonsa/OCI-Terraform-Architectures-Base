@@ -1,3 +1,7 @@
+# Créditos y Adaptaciones
+
+Este proyecto está basado en el repositorio original de Foggykitchen (https://github.com/foggykitchen/oci-terraform-examples). Incluye adaptaciones y mejoras realizadas por Jesus Montoya, Arquitecto Cloud.
+
 # 🏗️ Arquitecturas de Referencia Terraform OCI
 
 ## 🌐 Arquitectura 1 - Servidor Web Único

@@ -1,0 +1,390 @@
+title: "Sistema de Archivos Compartido"
+description: "Arquitectura de referencia para implementar un sistema de archivos compartido con balanceador de carga, gateway NAT, host bastión y sistema de almacenamiento de archivos en Oracle Cloud Infrastructure."
+stackDescription: "Arquitectura de referencia para implementar un sistema de archivos compartido con balanceador de carga, gateway NAT, host bastión y sistema de almacenamiento de archivos en Oracle Cloud Infrastructure."
+schemaVersion: 1.1.0
+version: "20201028"
+locale: "en"
+
+variableGroups:
+- title: "General Configuration"
+  visible: false
+  variables:
+  - tenancy_ocid
+  - region
+  - webservice_ports
+
+- title: "Required Configuration"
+  visible: true  
+  variables:
+  - compartment_ocid
+  - availability_domain_name 
+  - show_advanced 
+
+- title: "Networking Optional Configuration"
+  visible: 
+      and:
+        - show_advanced
+  variables:
+  - VCN-CIDR
+  - PrivateSubnet-CIDR
+  - LBSubnet-CIDR
+  - BastionSubnet-CIDR
+
+- title: "Load Balancer Optional Configuration"
+  visible: 
+      and:
+        - show_advanced
+  variables:
+  - lb_shape
+  - flex_lb_min_shape
+  - flex_lb_max_shape
+
+- title: "Compute Optional Configuration"
+  visible: 
+      and:
+        - show_advanced
+  variables:
+  - ComputeCount
+  - WebserverShape
+  - WebserverFlexShapeOCPUS
+  - WebserverFlexShapeMemory
+  - BastionShape
+  - BastionFlexShapeOCPUS
+  - BastionFlexShapeMemory
+  - instance_os
+  - linux_os_version
+
+- title: "File Storage Service Optional Configuration"
+  visible: 
+      and:
+        - show_advanced
+  variables:
+  - MountTargetIPAddress
+
+variables:
+
+  show_advanced:
+    type: boolean
+    title: "Show advanced options?"
+    description: "Shows advanced options."
+    visible: true
+    default: false
+
+  # General Configuration
+  tenancy_ocid:
+    title: "Tenancy ID"
+    description: "The Oracle Cloud Identifier (OCID) for your tenancy"
+    type: string
+    required: true
+    visibile: false
+
+  region:
+    title: "Region"
+    description: "Choose Region where you deploy your infrastructure"
+    type: oci:identity:region:name
+    required: true
+    visibile: true
+
+  compartment_ocid:
+    title: "Compartment OCID"
+    description: "Choose Compartment where you deploy your infrastructure"
+    type: oci:identity:compartment:id
+    required: true
+    visibile: true
+
+  availability_domain_name:
+    type: oci:identity:availabilitydomain:name
+    required: true
+    visibile: true
+    title: "Availability Domain"
+    description: "Choose Availability Domain where your infrastructure will be deployed."
+    dependsOn:
+      regionName: ${region}
+      compartmentId: ${compartment_ocid}
+  
+  MountTargetIPAddress:
+    type: string
+    required: false
+    default: "10.0.1.25"
+    title: "Mount Target IP Address"
+    description: "Choose Mount Target IP Address for File Storage Service."
+
+  # Optional Configuration
+
+  ComputeCount:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 3
+    title: "Webservers Compute Count"
+    description: "Number of compute instances to create."
+
+  VCN-CIDR:
+    type: string
+    required: false
+    default: "10.0.0.0/16"
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: "VCN CIDR"
+    description: "Choose single, contiguous IPv4 CIDR block for the VCN"
+
+  PrivateSubnet-CIDR:
+    type: string
+    required: false
+    default: "10.0.1.0/24"
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: "Private Subnet CIDR"
+    description: "Choose single, contiguous IPv4 CIDR block for the Private Subnet"
+
+  LBSubnet-CIDR:
+    type: string
+    required: false
+    default: "10.0.2.0/24"
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: "Load Balancer Subnet CIDR"
+    description: "Choose single, contiguous IPv4 CIDR block for the Load Balancer Subnet"
+
+  BastionSubnet-CIDR:
+    type: string
+    required: false
+    default: "10.0.3.0/24"
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: "Bastion Subnet CIDR"
+    description: "Choose single, contiguous IPv4 CIDR block for the Bastion Subnet"
+
+  WebserverShape:
+    type: oci:core:instanceshape:name
+    title: "Webserver Shape"
+    description: "Choose a shape for your Webservers"
+    default: "VM.Standard.A1.Flex"
+    required: false
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+
+  WebserverFlexShapeOCPUS:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 1
+    title: "Webserver Flex Shape OCPUs"
+    description: "Choose number of OCPUs for Webserver Flex Shape."
+    visible:
+      and:
+        - or:
+          - eq:
+            - WebserverShape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - WebserverShape 
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - WebserverShape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - WebserverShape 
+            - "VM.Optimized3.Flex"
+
+  WebserverFlexShapeMemory:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 6
+    title: "Webserver Flex Shape Memory (GB)"
+    description: "Choose number GB for Webserver Flex Shape Memory."
+    visible:
+      and:
+        - or:
+          - eq:
+            - WebserverShape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - WebserverShape
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - WebserverShape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - WebserverShape 
+            - "VM.Optimized3.Flex"
+
+  BastionShape:
+    type: oci:core:instanceshape:name
+    title: "Bastion Shape"
+    description: "Choose a shape for your Bastion Host"
+    default: "VM.Standard.A1.Flex"
+    required: false
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+
+  BastionFlexShapeOCPUS:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 1
+    title: "Bastion Flex Shape OCPUs"
+    description: "Choose number of OCPUs for Bastion Flex Shape."
+    visible:
+      and:
+        - or:
+          - eq:
+            - BastionShape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - BastionShape 
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - BastionShape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - BastionShape 
+            - "VM.Optimized3.Flex"
+
+  BastionFlexShapeMemory:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 128
+    multipleOf: 1
+    default: 2
+    title: "Bastion Flex Shape Memory (GB)"
+    description: "Choose number GB for Bastion Flex Shape Memory."
+    visible:
+      and:
+        - or:
+          - eq:
+            - BastionShape 
+            - "VM.Standard.E3.Flex"
+          - eq:
+            - BastionShape
+            - "VM.Standard.E4.Flex"
+          - eq:
+            - BastionShape 
+            - "VM.Standard.A1.Flex"
+          - eq:
+            - BastionShape 
+            - "VM.Optimized3.Flex"
+
+  instance_os:
+    type: enum
+    required: false
+    visible: true
+    title: "Instance OS"
+    description: "Choose Operating System that determines the operating system for all instances."
+    default: "Canonical Ubuntu"
+    enum:
+      - "Canonical Ubuntu"
+      - "Oracle Linux"
+
+  linux_os_version:
+    type: string
+    required: false
+    default: "22.04"
+    title: "Linux OS Version"
+    description: "The version of the operating system for the compute instance. For example, '22.04' for Ubuntu 22.04."
+
+  lb_shape:
+    type: enum
+    required: false
+    default: "flexible"
+    title: "Load Balancer Shape"
+    description: "Defines the shape of the load balancer. Use 'flexible' for dynamic scaling or specify fixed shapes."
+    enum:
+      - "flexible"
+      - "10Mbps"
+      - "100Mbps"
+      - "400Mbps"
+      - "8000Mbps"
+
+  flex_lb_min_shape:
+    type: number
+    required: false
+    minimum: 10
+    maximum: 8192
+    multipleOf: 1
+    default: 10
+    title: "Flexible Load Balancer Minimum Bandwidth (Mbps)"
+    description: "Minimum bandwidth (in Mbps) for the flexible load balancer."
+    visible:
+      and:
+        - eq:
+          - lb_shape
+          - "flexible"
+
+  flex_lb_max_shape:
+    type: number
+    required: false
+    minimum: 10
+    maximum: 8192
+    multipleOf: 1
+    default: 100
+    title: "Flexible Load Balancer Maximum Bandwidth (Mbps)"
+    description: "Maximum bandwidth (in Mbps) for the flexible load balancer."
+    visible:
+      and:
+        - eq:
+          - lb_shape
+          - "flexible"
+
+  webservice_ports:
+    type: array
+    required: false
+    default: [80, 443]
+    title: "Web Service Ports"
+    description: "A list of TCP ports to open for ingress traffic in the security list. Common ports include 80 (HTTP), 443 (HTTPS)."
+    items:
+      type: number
+      minimum: 1
+      maximum: 65535
+
+  ssh_ports:
+    type: array
+    required: false
+    default: [22]
+    title: "SSH Ports"
+    description: "List of ports to allow ingress traffic to the bastion host and webservers. Default is 22 for SSH."
+    items:
+      type: number
+      minimum: 1
+      maximum: 65535
+
+  bastion_allowed_ip:
+    type: string
+    required: false
+    default: "0.0.0.0/0"
+    title: "Bastion Allowed IP"
+    description: "Trusted IP CIDR blocks for SSH access to the bastion host."
+
+outputs:
+
+  generated_ssh_private_key:
+    title: "Generated SSH Private Key"
+    displayText: "Generated SSH Private Key"
+    type: string
+    visible: true
+  
+  FoggyKitchenWebserver1PublicIP:
+    title: "Webserver1 Public IP"
+    displayText: "Webserver1 Public IP"
+    type: copyableString
+    visible: true
+
+  FoggyKitchenWebserver2PublicIP:
+    title: "Webserver2 Public IP"
+    displayText: "Webserver2 Public IP"
+    type: copyableString
+    visible: true
+
+  FoggyKitchenLoadBalancer_Public_IP:
+    title: "Load Balancer Public IP"
+    displayText: "Load Balancer Public IP"
+    type: copyableString
+    visible: true
+
+

@@ -1,0 +1,203 @@
+# =============================================================================
+# ARCHIVOS SENSIBLES DE TERRAFORM/OCI
+# =============================================================================
+
+# Archivos de variables de Terraform (contienen credenciales)
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+
+# Claves privadas y certificados
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.p8
+*.p7b
+
+# Archivos de configuración de OCI
+oci_api_key*
+oci_config
+.oci/
+
+# Variables de entorno
+*.env
+.env
+.env.local
+.env.production
+.env.staging
+
+# =============================================================================
+# ARCHIVOS DE ESTADO Y CACHÉ DE TERRAFORM
+# =============================================================================
+
+# Directorio de Terraform
+.terraform/
+.terraform.lock.hcl
+
+# Archivos de estado
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfstate.local
+*.tfstate.remote
+
+# Planes de Terraform
+*.tfplan
+*.plan
+
+# =============================================================================
+# CLAVES SSH
+# =============================================================================
+
+# Claves SSH privadas
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*.ppk
+
+# Configuración SSH
+ssh_config
+ssh_known_hosts
+
+# =============================================================================
+# LOGS Y ARCHIVOS TEMPORALES
+# =============================================================================
+
+# Logs
+*.log
+*.log.*
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# IDEs Y EDITORES
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# ARCHIVOS DE DESARROLLO
+# =============================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+
+# =============================================================================
+# ARCHIVOS DE BACKUP Y SNAPSHOTS
+# =============================================================================
+
+# Snapshots de bases de datos
+*.sql
+*.dump
+*.backup
+
+# Archivos de respaldo
+backup/
+backups/
+*.bak
+*.backup
+
+# =============================================================================
+# ARCHIVOS ESPECÍFICOS DE OCI
+# =============================================================================
+
+# Configuración de OCI CLI
+~/.oci/
+.oci/
+
+# Archivos de configuración de OCI
+oci_config
+oci_api_key*
+
+# =============================================================================
+# ARCHIVOS DE MONITOREO Y DEBUGGING
+# =============================================================================
+
+# Archivos de debug
+debug/
+*.debug
+
+# Archivos de profiling
+*.prof
+*.trace
+
+# =============================================================================
+# ARCHIVOS DE TESTING
+# =============================================================================
+
+# Archivos de test
+test/
+tests/
+*.test
+*.spec
+
+# Cobertura de código
+coverage/
+*.coverage
+.coverage 

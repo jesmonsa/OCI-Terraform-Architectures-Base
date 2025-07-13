@@ -1,3 +1,7 @@
+# Créditos y Adaptaciones
+
+Este proyecto está basado en el repositorio original de Foggykitchen (https://github.com/foggykitchen/oci-terraform-examples). Incluye adaptaciones y mejoras realizadas por Jesus Montoya, Arquitecto Cloud.
+
 # 🏗️ Arquitecturas de Referencia Terraform OCI
 
 ## 🌐 Arquitectura 2 - Segundo Servidor Web en Otro AD
@@ -211,19 +215,13 @@ git clone https://github.com/usuario/arquitecturas-oci-terraform.git
 cd arquitecturas-oci-terraform/02_segundo_servidor_web_en_otro_AD
 ```
 
-### ✅ **2. Validar Configuración**
+### ✅ **2. Verificar Prerrequisitos**
 
-```bash
-# Ejecutar script de validación completa
-./validate_config.sh
-```
-
-Este script verificará:
-- Instalación de Terraform/OpenTofu
-- Instalación de Ansible
-- Configuración de variables OCI
-- Presencia de todos los archivos necesarios
-- Sintaxis de Ansible
+Asegúrate de tener:
+- Terraform >= 0.15.0 o OpenTofu >= 1.0.0 instalado
+- Ansible >= 2.9 instalado
+- Credenciales OCI configuradas
+- Todos los archivos terraform.tfvars configurados
 
 ### 🔄 **3. Inicializar el Proyecto**
 

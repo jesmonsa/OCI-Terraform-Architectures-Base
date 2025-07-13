@@ -1,0 +1,61 @@
+# =============================================================================
+# CONFIGURACIÓN DE AUTENTICACIÓN OCI
+# =============================================================================
+# IMPORTANTE: Reemplaza estos valores con tus credenciales reales de OCI
+# NO uses estos valores de ejemplo en producción
+
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# =============================================================================
+# CONFIGURACIÓN DE RED
+# =============================================================================
+vcn_cidr            = "10.0.0.0/16"
+private_subnet_cidr = "10.0.1.0/24"    # Subnet para servidores web
+lb_subnet_cidr      = "10.0.2.0/24"    # Subnet para balanceador de carga
+
+# =============================================================================
+# CONFIGURACIÓN DE COMPUTE
+# =============================================================================
+ComputeCount = 2  # Número de servidores web (1-3)
+
+# Configuración de Servidores Web
+WebserverShape           = "VM.Standard.A1.Flex"
+WebserverFlexShapeOCPUS  = 1
+WebserverFlexShapeMemory = 2
+
+# =============================================================================
+# CONFIGURACIÓN DEL SISTEMA OPERATIVO
+# =============================================================================
+instance_os      = "Canonical Ubuntu"
+linux_os_version = "22.04"
+
+# =============================================================================
+# CONFIGURACIÓN DE SEGURIDAD
+# =============================================================================
+webservice_ports = ["80", "443"]
+ssh_ports        = ["22"]
+
+# =============================================================================
+# CONFIGURACIÓN DEL BALANCEADOR DE CARGA
+# =============================================================================
+lb_shape          = "flexible"
+flex_lb_min_shape = 10
+flex_lb_max_shape = 100
+
+# =============================================================================
+# CONFIGURACIÓN DE CLAVE SSH
+# =============================================================================
+ssh_private_key_filename = "id_rsa_lb"
+
+# =============================================================================
+# NOTAS ADICIONALES
+# =============================================================================
+# - Esta configuración incluye un balanceador de carga para distribuir tráfico
+# - Los servidores web se crean en Availability Domains diferentes
+# - El balanceador de carga proporciona alta disponibilidad
+# - Para producción, considera usar shapes más potentes

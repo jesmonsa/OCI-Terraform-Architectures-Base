@@ -1,350 +1,321 @@
-# 01-oci-terraform-foundations
+# OCI Terraform Foundations
 
-Repositorio con ejemplos y configuraciones base de Terraform para desplegar infraestructura en Oracle Cloud Infrastructure (OCI).
+[![Terraform](https://img.shields.io/badge/Terraform-1.0+-blue.svg)](https://www.terraform.io/)
+[![OCI](https://img.shields.io/badge/Oracle%20Cloud-Infrastructure-orange.svg)](https://www.oracle.com/cloud/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Course description
+## 📋 Descripción del Proyecto
 
-In this course, you can find 14 lessons with the Terraform's HCL version 1.0 code examples for the deployment of OCI resources. Our course starts with the simple example of one webserver in one regional public subnet, nested in one VCN in particular availability domain (AD). Incrementally next lessons will show you how to implement multiplied webservers, spread between ADs, located under load balancer umbrella. Further, we will make this setup even more secure by the introduction of private subnets and bastion-host to jump over. We will also explore storage options for the servers (local block volumes and shared filesystems). Besides the web tier, we will introduce VM based OCI DBSystem deployed in the fully separated private subnet. The last lesson will introduce VCN local peering for the integration of private DBSystem and external VCN with backend server (local VCN peering).  
+Este repositorio contiene **14 arquitecturas progresivas** de Terraform para Oracle Cloud Infrastructure (OCI), diseñadas como un curso completo de aprendizaje. Cada arquitectura construye sobre la anterior, introduciendo conceptos más avanzados de infraestructura como código.
 
-## How to use code from the lessons
+### 🎯 Objetivos del Curso
 
-### STEP 1.
+- **Aprender Terraform HCL 1.0** con ejemplos prácticos de OCI
+- **Progresión incremental** desde conceptos básicos hasta arquitecturas empresariales
+- **Mejores prácticas** de seguridad, alta disponibilidad y escalabilidad
+- **Implementación real** de patrones arquitectónicos en la nube
 
-Clone the repo from GitHub.com by executing the command as follows and then go to foggykitchen_tf_oci_course directory:
+## 🏗️ Arquitecturas Disponibles
 
+### 📚 Nivel Básico - Fundamentos
+
+| Arquitectura | Descripción | Complejidad |
+|--------------|-------------|-------------|
+| [01 - Servidor Web Único](01_servidor_web_unico/) | Servidor web básico en subred pública | ⭐ |
+| [02 - Segundo Servidor Web](02_segundo_servidor_web_en_otro_AD/) | Alta disponibilidad entre Availability Domains | ⭐⭐ |
+| [02a - Segundo Servidor Web (FD)](02a_segundo_servidor_web_en_otro_FD/) | Alta disponibilidad entre Fault Domains | ⭐⭐ |
+
+### 🔄 Nivel Intermedio - Balanceo y Seguridad
+
+| Arquitectura | Descripción | Complejidad |
+|--------------|-------------|-------------|
+| [03 - Balanceador de Carga](03_balanceador_de_carga/) | Load balancer con múltiples servidores | ⭐⭐⭐ |
+| [04 - Balanceador + NAT + Bastion](04_balanceador_NAT_bastion/) | Arquitectura segura con subredes privadas | ⭐⭐⭐⭐ |
+| [04a - Balanceador + NAT + Bastion + NSG](04a_balanceador_NAT_bastion_grupos_seguridad/) | Seguridad avanzada con Network Security Groups | ⭐⭐⭐⭐ |
+
+### 💾 Nivel Avanzado - Almacenamiento y Base de Datos
+
+| Arquitectura | Descripción | Complejidad |
+|--------------|-------------|-------------|
+| [05 - Sistema de Archivos Compartido](05_sistema_archivos_compartido/) | File Storage compartido entre servidores | ⭐⭐⭐ |
+| [05a - Sistema de Archivos + NSG](05a_sistema_archivos_compartido_grupos_seguridad/) | File Storage con grupos de seguridad | ⭐⭐⭐⭐ |
+| [06 - Volúmenes Bloque Local](06_volumenes_bloque_local/) | Block Storage para almacenamiento persistente | ⭐⭐⭐ |
+| [07 - Sistema Base de Datos](07_sistema_base_datos/) | Oracle Database en subred privada | ⭐⭐⭐⭐ |
+| [07a - Sistema Base de Datos + Data Guard](07a_sistema_base_datos_con_dataguard/) | Alta disponibilidad con Data Guard | ⭐⭐⭐⭐⭐ |
+
+### 🌐 Nivel Experto - Conectividad Avanzada
+
+| Arquitectura | Descripción | Complejidad |
+|--------------|-------------|-------------|
+| [08 - Peering VCN Local](08_peering_vcn_local/) | Conectividad entre VCNs en la misma región | ⭐⭐⭐⭐ |
+| [09 - Peering VCN Remoto](09_peering_vcn_remoto/) | Conectividad entre VCNs en diferentes regiones | ⭐⭐⭐⭐⭐ |
+| [09a - Peering VCN Remoto + Data Guard](09a_peering_vcn_remoto_con_dataguard/) | Arquitectura multi-región con Data Guard | ⭐⭐⭐⭐⭐ |
+
+## 🛣️ Ruta de Aprendizaje Recomendada
+
+```mermaid
+graph TD
+    A[01 - Servidor Web Único] --> B[02 - Segundo Servidor Web]
+    B --> C[03 - Balanceador de Carga]
+    C --> D[04 - Balanceador + NAT + Bastion]
+    D --> E[05 - Sistema de Archivos Compartido]
+    E --> F[06 - Volúmenes Bloque Local]
+    F --> G[07 - Sistema Base de Datos]
+    G --> H[08 - Peering VCN Local]
+    H --> I[09 - Peering VCN Remoto]
+    
+    B --> B1[02a - Segundo Servidor Web FD]
+    D --> D1[04a - Balanceador + NAT + Bastion + NSG]
+    E --> E1[05a - Sistema de Archivos + NSG]
+    G --> G1[07a - Sistema Base de Datos + Data Guard]
+    I --> I1[09a - Peering VCN Remoto + Data Guard]
 ```
-Martin-MacBook-Pro:~ martinlinxfeld$ git clone https://github.com/mlinxfeld/foggykitchen_tf_oci_course.git
-Cloning into 'foggykitchen_tf_oci_course'...
-remote: Enumerating objects: 121, done.
-remote: Counting objects: 100% (121/121), done.
-remote: Compressing objects: 100% (89/89), done.
-remote: Total 258 (delta 73), reused 79 (delta 32), pack-reused 137
-Receiving objects: 100% (258/258), 68.71 MiB | 23.28 MiB/s, done.
-Resolving deltas: 100% (142/142), done.
 
-Martin-MacBook-Pro:~ martinlinxfeld$ cd foggykitchen_tf_oci_course/
-Martin-MacBook-Pro:foggykitchen_tf_oci_course martinlinxfeld$ ls -latr
-total 48
-drwxr-xr-x  14 martinlinxfeld  staff    448 13 lut 23:23 LESSON1_single_webserver
-drwxr-xr-x  16 martinlinxfeld  staff    512 13 lut 23:23 LESSON2_second_webserver_in_other_AD
-drwxr-xr-x  17 martinlinxfeld  staff    544 13 lut 23:23 LESSON3_load_balancer
-drwxr-xr-x  23 martinlinxfeld  staff    736 13 lut 23:23 LESSON4_load_balancer_NAT_bastion
-drwxr-xr-x  25 martinlinxfeld  staff    800 13 lut 23:23 LESSON4a_load_balancer_NAT_bastion_security_groups
-drwxr-xr-x  24 martinlinxfeld  staff    768 13 lut 23:23 LESSON5_shared_filesystem
-drwxr-xr-x  27 martinlinxfeld  staff    864 13 lut 23:23 LESSON5a_shared_filesystem_security_groups
-drwxr-xr-x  26 martinlinxfeld  staff    832 13 lut 23:23 LESSON6_local_block_volumes
-drwxr-xr-x  29 martinlinxfeld  staff    928 13 lut 23:23 LESSON7_dbsystem
-drwxr-xr-x  38 martinlinxfeld  staff   1216 13 lut 23:23 LESSON8_vcn_local_peering
-drwxr-xr-x  39 martinlinxfeld  staff   1248 13 lut 23:23 LESSON9_vcn_remote_peering
-drwxr-xr-x   3 martinlinxfeld  staff     96 13 lut 23:38 ..
-drwxr-xr-x  16 martinlinxfeld  staff    512  6 mar 09:47 .
--rw-r--r--   1 martinlinxfeld  staff  21236  6 mar 09:47 README.md
-drwxr-xr-x  14 martinlinxfeld  staff    448 10 mar 16:23 .git
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+
+- **Terraform 1.0+** o **OpenTofu 1.0+**
+- **Cuenta de OCI** con permisos de administrador
+- **OCI CLI** configurado (opcional)
+- **Git** para clonar el repositorio
+
+### Configuración Inicial
+
+1. **Clonar el repositorio:**
+```bash
+git clone https://github.com/your-username/oci-terraform-foundations.git
+cd oci-terraform-foundations
 ```
 
-### STEP 2.
-
-Within web browser go to URL: https://www.terraform.io/downloads.html. Find your platform and download the latest version of your terraform runtime. Add directory of terraform binary into PATH and check terraform version:
-
-```
-Martin-MacBook-Pro:foggykitchen_tf_oci_course martinlinxfeld$ export PATH=$PATH:/User/martinlinxfeld/terraform
-
-Martin-MacBook-Pro:foggykitchen_tf_oci_course martinlinxfeld$ terraform --version
-
-Terraform v0.12.16
-
-Your version of Terraform is out of date! The latest version
-is 0.12.17. You can update by downloading from https://www.terraform.io/downloads.html
-```
-
-### STEP 3. 
-Go to particular lesson directory and create environment file with TF_VARs (region1 + region2 required by lesson9 and lesson10):
-
-```
-Martin-MacBook-Pro:foggykitchen_tf_oci_course martinlinxfeld$ cd LESSON8_vcn_local_peering
-
-Martin-MacBook-Pro:LESSON8_vcn_local_peering martinlinxfeld$ vi setup_oci_tf_vars.sh
-export TF_VAR_user_ocid="ocid1.user.oc1..aaaaaaaaob4qbf2(...)uunizjie4his4vgh3jx5jxa"
-export TF_VAR_tenancy_ocid="ocid1.tenancy.oc1..aaaaaaaas(...)krj2s3gdbz7d2heqzzxn7pe64ksbia"
-export TF_VAR_compartment_ocid="ocid1.tenancy.oc1..aaaaaaaasbktyckn(...)ldkrj2s3gdbz7d2heqzzxn7pe64ksbia"
-export TF_VAR_fingerprint="00:f9:d1:41:bb:57(...)82:47:e6:00"
-export TF_VAR_private_key_path="/tmp/oci_api_key.pem"
+2. **Configurar variables de entorno:**
+```bash
+# Crear archivo de configuración
+cat > setup_oci_tf_vars.sh << 'EOF'
+export TF_VAR_user_ocid="ocid1.user.oc1..aaaaaaaa..."
+export TF_VAR_tenancy_ocid="ocid1.tenancy.oc1..aaaaaaaas..."
+export TF_VAR_compartment_ocid="ocid1.compartment.oc1..aaaaaaaas..."
+export TF_VAR_fingerprint="00:f9:d1:41:bb:57..."
+export TF_VAR_private_key_path="/path/to/oci_api_key.pem"
 export TF_VAR_region="eu-frankfurt-1"
-export TF_VAR_region1="eu-frankfurt-1"
-export TF_VAR_region2="eu-amsterdam-1"
-export TF_VAR_private_key_oci="/tmp/id_rsa"
-export TF_VAR_public_key_oci="/tmp/id_rsa.pub"
+export TF_VAR_private_key_oci="/path/to/id_rsa"
+export TF_VAR_public_key_oci="/path/to/id_rsa.pub"
+EOF
 
-Martin-MacBook-Pro:LESSON8_vcn_local_peering martinlinxfeld$ source setup_oci_tf_vars.sh
+# Cargar variables
+source setup_oci_tf_vars.sh
 ```
 
-### STEP 4.
-Run *terraform init* with upgrade option just to download the lastest neccesary providers for this lesson:
-
-```
-Martin-MacBook-Pro:LESSON8_vcn_local_peering martinlinxfeld$ terraform init -upgrade
-
-Initializing the backend...
-
-Initializing provider plugins...
-- Checking for available provider plugins...
-- Downloading plugin for provider "null" (hashicorp/null) 2.1.2...
-- Downloading plugin for provider "oci" (hashicorp/oci) 3.65.0...
-
-The following providers do not have any version constraints in configuration,
-so the latest version was installed.
-
-To prevent automatic upgrades to new major versions that may contain breaking
-changes, it is recommended to add version = "..." constraints to the
-corresponding provider blocks in configuration, with the constraint strings
-suggested below.
-
-* provider.null: version = "~> 2.1"
-
-Terraform has been successfully initialized!
-
-You may now begin working with Terraform. Try running "terraform plan" to see
-any changes that are required for your infrastructure. All Terraform commands
-should now work.
-
-If you ever set or change modules or backend configuration for Terraform,
-rerun this command to reinitialize your working directory. If you forget, other
-commands will detect it and remind you to do so if necessary.
+3. **Seleccionar arquitectura:**
+```bash
+cd 01_servidor_web_unico
 ```
 
-### STEP 5.
-Run *terraform apply* to provision the content of this lesson (type **yes** to confirm the the apply phase):
-
-```
-Martin-MacBook-Pro:LESSON8_vcn_local_peering martinlinxfeld$ terraform apply
-
-An execution plan has been generated and is shown below.
-Resource actions are indicated with the following symbols:
-  + create
- <= read (data resources)
-
-Terraform will perform the following actions:
-
-  # data.oci_core_vnic.FoggyKitchenBackendserver1_VNIC1 will be read during apply
-  # (config refers to values not yet known)
- <= data "oci_core_vnic" "FoggyKitchenBackendserver1_VNIC1"  {
-
-(...)
-
-  # oci_load_balancer_listener.FoggyKitchenPublicLoadBalancerListener will be created
-  + resource "oci_load_balancer_listener" "FoggyKitchenPublicLoadBalancerListener" {
-      + default_backend_set_name = "FoggyKitchenPublicLBBackendset"
-      + hostname_names           = (known after apply)
-      + id                       = (known after apply)
-      + load_balancer_id         = (known after apply)
-      + name                     = "FoggyKitchenPublicLoadBalancerListener"
-      + path_route_set_name      = (known after apply)
-      + port                     = 80
-      + protocol                 = "HTTP"
-      + rule_set_names           = (known after apply)
-      + state                    = (known after apply)
-
-      + connection_configuration {
-          + idle_timeout_in_seconds = (known after apply)
-        }
-    }
-
-Plan: 49 to add, 0 to change, 0 to destroy.
-
-Do you want to perform these actions?
-  Terraform will perform the actions described above.
-  Only 'yes' will be accepted to approve.
-
-  Enter a value: yes
-
-(...)
-oci_identity_compartment.ExternalCompartment: Creating...
-oci_identity_compartment.FoggyKitchenCompartment: Creating...
-oci_identity_compartment.ExternalCompartment: Creation complete after 2s [id=ocid1.compartment.oc1..aaaaaaaatanq4gogyxvneubmw3nf6gmegvzyh6ylqq4c3u2i3nc36jhdemda]
-oci_identity_compartment.FoggyKitchenCompartment: Creation complete after 2s [id=ocid1.compartment.oc1..aaaaaaaagillnk7ttj6wpdhmewpibpxc5gbmrfxdtmaa3gfgjzbudesm3tsq]
-oci_identity_policy.FoggyKitchenLPGPolicy1: Creating...
-
-(...)
-
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [21m11s elapsed]
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [21m21s elapsed]
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [21m31s elapsed]
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [21m41s elapsed]
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [21m51s elapsed]
-oci_database_db_system.FoggyKitchenDBSystem: Still creating... [22m1s elapsed]
-
-(...)
-
-oci_database_db_system.FoggyKitchenDBSystem: Modifications complete after 2m8s [id=ocid1.dbsystem.oc1.eu-frankfurt-1.abtheljrbanqwij36gqnj7eya3yvkilc5ieflw3ukh6hkwtbuj7oeuaylx6a]
-data.oci_database_db_nodes.DBNodeList: Refreshing state...
-data.oci_database_db_node.DBNodeDetails: Refreshing state...
-data.oci_core_vnic.FoggyKitchenDBSystem_VNIC1: Refreshing state...
-
-Apply complete! Resources: 49 added, 0 changed, 0 destroyed.
-
-Outputs:
-
-FoggyKitchenBackendserver1_PrivateIP = [
-  "192.168.1.2",
-]
-FoggyKitchenBastionServer_PublicIP = [
-  "130.61.57.119",
-]
-FoggyKitchenDBServer_PrivateIP = [
-  "10.0.4.2",
-]
-FoggyKitchenPublicLoadBalancer_Public_IP = [
-  [
-    "132.145.242.177",
-  ],
-]
-FoggyKitchenWebserver1_PrivateIP = [
-  "10.0.2.2",
-]
-FoggyKitchenWebserver2_PrivateIP = [
-  "10.0.2.3",
-]
+4. **Desplegar infraestructura:**
+```bash
+terraform init
+terraform plan
+terraform apply
 ```
 
-### STEP 6.
-After testing the environment you can remove the lesson's content. You should just run *terraform destroy* (type **yes** for confirmation of the destroy phase):
+## 🔧 Métodos de Despliegue
 
-```
-Martin-MacBook-Pro:LESSON8_vcn_local_peering martinlinxfeld$ terraform destroy
-
-oci_identity_compartment.FoggyKitchenCompartment: Refreshing state... [id=ocid1.compartment.oc1..aaaaaaaagillnk7ttj6wpdhmewpibpxc5gbmrfxdtmaa3gfgjzbudesm3tsq]
-oci_identity_compartment.ExternalCompartment: Refreshing state... [id=ocid1.compartment.oc1..aaaaaaaatanq4gogyxvneubmw3nf6gmegvzyh6ylqq4c3u2i3nc36jhdemda]
-oci_file_storage_file_system.FoggyKitchenFilesystem: Refreshing state... [id=ocid1.filesystem.oc1.eu_frankfurt_1.aaaaaaaaaaabenqnmzzgcllqojxwiotfouwwm4tbnzvwm5lsoqwtcllbmqwtcaaa]
-(...)
-Plan: 0 to add, 0 to change, 49 to destroy.
-
-Do you really want to destroy all resources?
-  Terraform will destroy all your managed infrastructure, as shown above.
-  There is no undo. Only 'yes' will be accepted to confirm.
-
-  Enter a value: yes
-
-null_resource.FoggyKitchenWebserver1_oci_u01_fstab: Destroying... [id=3529939257266357221]
-null_resource.FoggyKitchenWebserver2SharedFilesystem: Destroying... [id=95791244474403118]
-null_resource.FoggyKitchenWebserver1SharedFilesystem: Destroying... [id=4614169576253275506]
-null_resource.FoggyKitchenWebserver2SharedFilesystem: Destruction complete after 0s
-null_resource.FoggyKitchenWebserver1SharedFilesystem: Destruction complete after 0s
-
-(...)
-
-oci_core_virtual_network.FoggyKitchenVCN: Destroying... [id=ocid1.vcn.oc1.eu-frankfurt-1.aaaaaaaajyphwxm26aqbfzd4er4u7wkqetcasmxv4izm7cvqu6jdvztj2cpa]
-oci_core_local_peering_gateway.FoggyKitchenLPG2: Destruction complete after 0s
-oci_core_virtual_network.FoggyKitchenVCN2: Destroying... [id=ocid1.vcn.oc1.eu-frankfurt-1.aaaaaaaaqwjipowxnpyyo37skinezkhbxs7t3fsaeo4gfhaydkzjajuhvdmq]
-oci_core_virtual_network.FoggyKitchenVCN: Destruction complete after 0s
-oci_core_virtual_network.FoggyKitchenVCN2: Destruction complete after 1s
-oci_identity_policy.FoggyKitchenLPGPolicy2: Destroying... [id=ocid1.policy.oc1..aaaaaaaaewh6rmehovenbdluf3qhm6tafb3qsdefqphujvpgocsnsbhlifca]
-oci_identity_policy.FoggyKitchenLPGPolicy2: Destruction complete after 0s
-oci_identity_compartment.FoggyKitchenCompartment: Destroying... [id=ocid1.compartment.oc1..aaaaaaaagillnk7ttj6wpdhmewpibpxc5gbmrfxdtmaa3gfgjzbudesm3tsq]
-oci_identity_compartment.ExternalCompartment: Destroying... [id=ocid1.compartment.oc1..aaaaaaaatanq4gogyxvneubmw3nf6gmegvzyh6ylqq4c3u2i3nc36jhdemda]
-oci_identity_compartment.FoggyKitchenCompartment: Destruction complete after 0s
-oci_identity_compartment.ExternalCompartment: Destruction complete after 0s
-
-Destroy complete! Resources: 49 destroyed.
-
+### 1. Terraform/OpenTofu CLI
+```bash
+terraform init
+terraform plan
+terraform apply
+terraform destroy
 ```
 
-## Description and Topology diagrams for each lesson
+### 2. Oracle Resource Manager
+- Subir el código como stack en OCI Resource Manager
+- Configurar variables a través de la interfaz web
+- Desplegar con un clic
 
-### LESSON 1 - Single Webserver
+### 3. CI/CD Pipeline
+- Integrar con GitHub Actions, GitLab CI, o Jenkins
+- Automatizar despliegues con variables de entorno
+- Implementar validaciones y tests
 
-In this lesson we will create the simplest set of OCI resources, starting with one compartment, one VCN and one subnet in this VCN. The subnet will be regional (covering all availability domains AD1-AD3). Inside this public subnet, we will nest one VM for WebServer. Public subnet means that VM will have public IP associated - VM will be exposed to the public Internet (via Internet Gateway and proper route table). After this deployment, one basic Security List will permit access from the public Internet to VM via protocol SSH (port 22) & HTTP/HTTPS protocols (port 80, 443). For the software provisioning we will utilize null_resource and remote-exec capability of Terraform *Null Provider* - Terraform will install HTTP server with root webpage content. As a consequence, after successful terraform apply, we should be able to visit VM public IP address with our web browser and expect their simple webpage content - **Welcome to FoggyKitchen.com! This is WEBSERVER1...**.
+## 🔐 Autenticación y Seguridad
 
-![](LESSON1_single_webserver/LESSON1_single_webserver.jpg)
+### Métodos de Autenticación
 
-### LESSON 2 - Second Webserver in other Availability Domain (AD)
+1. **API Key Authentication** (Recomendado)
+   - Generar par de claves en OCI Console
+   - Configurar fingerprint y private key path
 
-In this lesson, we will add the second VM in another AD in the same VCN and regional subnet. Inside this new VM again *Null Provider* will be used to configure yet another webserver with the simple webpage content, but this time it will be showing content as follows: **Welcome to FoggyKitchen.com! This is WEBSERVER2...**. After this lesson, you can use public IP addresses of both VMs to access two different web pages. Wouldn't it be great to have some load balancer on top of that and hide both web servers under the load balancer umbrella?
+2. **Instance Principal** (Para instancias OCI)
+   - Usar metadata de la instancia
+   - Sin necesidad de claves API
 
-![](LESSON2_second_webserver_in_other_AD/LESSON2_second_webserver_in_other_AD.jpg)
+3. **Service Principal** (Para CI/CD)
+   - Configurar políticas específicas
+   - Usar tokens de servicio
 
-### LESSON 2a - Second Webserver in other Fault Domain (FD)
+### Mejores Prácticas de Seguridad
 
-In this lesson, we will deploy the infrastructure in OCI region where only one Availablity Domain (AD) has been delivered. It means we will deploy webservers in the same AD, but in different Fault Domains (FD). The rest of the configuration is the same as in the original lesson 2.
+- ✅ Usar Network Security Groups (NSG)
+- ✅ Implementar subredes privadas
+- ✅ Configurar bastion hosts
+- ✅ Aplicar principio de menor privilegio
+- ✅ Rotar claves regularmente
+- ✅ Habilitar logging y monitoreo
 
-![](LESSON2a_second_webserver_in_another_FD/LESSON2a_second_webserver_in_another_FD.jpg)
+## 📊 Recursos Desplegados
 
+Cada arquitectura incluye:
 
-### LESSON 3 - Load Balancer
+| Tipo de Recurso | Descripción |
+|-----------------|-------------|
+| **Compute** | Instancias VM con diferentes configuraciones |
+| **Networking** | VCNs, subredes, route tables, security lists |
+| **Load Balancer** | Balanceadores de carga con health checks |
+| **Storage** | Block volumes, File Storage, Object Storage |
+| **Database** | Oracle Database Systems con Data Guard |
+| **Security** | Network Security Groups, bastion hosts |
+| **Connectivity** | Local/Remote VCN peering, NAT gateways |
 
-In this lesson, we will introduce the OCI Public Load Balancer. Load Balancer's Listener entity will be visible on the Internet, which means you will have an additional public IP address. On the other hand Load Balancer's Backendset with Backends will be associated with both Webserver VMs. The outcome of this training is very simple. You can access web servers via the Load Balancer. Reload webpage a couple of times and you should expect index.html page to be different depends on what web server has been chosen by the Load Balancer. There is only one drawback of this configuration. Webservers are still visible with their public IPs. Wouldn't it be great to hide them? 
+## 🎓 Conceptos Aprendidos
 
-![](LESSON3_load_balancer/LESSON3_load_balancer.jpg)
+### Networking
+- Virtual Cloud Networks (VCN)
+- Subredes públicas y privadas
+- Route tables y security lists
+- Network Security Groups
+- VCN peering (local y remoto)
+- NAT gateways y bastion hosts
 
-### LESSON 4 - Load Balancer + NAT Gateway + Bastion Host
+### Compute
+- Instancias de compute
+- Availability Domains y Fault Domains
+- Load balancers y health checks
+- Auto-scaling y alta disponibilidad
 
-In this lesson we will create brand new regional subnets inside current VCN: **(1)** dedicated Load Balancer public subnet and **(2)** special dedicated subnet for Bastion Host which will enable access to private/non-public resources. The first subnet which has been created in the previous lessons will be still used to nest webserver VMs there. But this time VMs will not receive public IPs during deployment phase (*assign_public_ip = false*). Since that moment we can treat them as nested in private subnet (they are not public). In that case previously used Internet Gateway will not be sufficient and we need to create NATGateway entity and route traffic there (*RouteTableViaNAT*). As VMs are not visible directly from the Internet with public IPs, to access them with SSH protocol, we need to jump via bastion host. This reconfiguration should have a reflection on the usage of *Null Provider*. In practice, remote exec will use the connection with webserver VMs via bastion host. Last but not least we also need to change Security Lists. Now Load Balancer and Web server Subnets will be bound with HTTP/HTTPS Security List. Webserver and Bastion host subnets will be bound with SSH Security List.  
+### Storage
+- Block volumes locales
+- File Storage compartido
+- Object Storage
+- Backup y recuperación
 
-![](LESSON4_load_balancer_NAT_bastion/LESSON4_load_balancer_NAT_bastion.jpg)
+### Database
+- Oracle Database Systems
+- Data Guard para alta disponibilidad
+- Subredes de base de datos
+- Configuración de seguridad
 
-### LESSON 4a - Load Balancer + NAT Gateway + Bastion Host (+ Network Security Groups) 
+### Security
+- Principio de menor privilegio
+- Network Security Groups
+- Bastion hosts
+- Encriptación en tránsito y en reposo
 
-In this lesson, we will explore a new approach to security in OCI. Instead of using Security Lists which were previously bound to subnet level, this time we will create Network Security Groups (NGS) with Network Security Roles. Each NGS will be then bound to each VM's virtual network interface (VNIC) and Load Balancer directly (not via LB subnet). It makes OCI security more granular. This is an optional lesson, just to explore new security concepts in OCI. Keep in mind that further lessons will be fully based on the previously implemented Security List concept. 
+## 🛠️ Personalización
 
-![](LESSON4a_load_balancer_NAT_bastion_security_groups/LESSON4a_load_balancer_NAT_bastion_security_groups.jpg)
+### Variables Comunes
 
-### LESSON 5 - Shared Filesystem 
+```hcl
+# Configuración de región
+variable "region" {
+  description = "Región de OCI"
+  default     = "eu-frankfurt-1"
+}
 
-In this lesson, we will modify the configuration a little bit. It means we will create the shared filesystem (*File Storage Mount Target*) which will be mounted as NFS over both Webservers (/sharedfs mount point). Into that share storage we will upload index.html file with new content: **Welcome to FoggyKitchen.com! These are both WEBSERVERS under LB umbrella with shared index.html ...**. Next *Null Resources* will modify /etc/httpd/conf/httpd.conf to include alias and directory of shared resource. Load Balancer will be modified as little bit as well. Now Backend Health Check will check URL /shared every 3000 ms. After successful *terraform apply* we should go to Web Browser and check URL: *http://public_ip_of_load_balancer/shared/*. 
+# Configuración de instancias
+variable "instance_shape" {
+  description = "Shape de las instancias"
+  default     = "VM.Standard2.1"
+}
 
-![](LESSON5_shared_filesystem/LESSON5_shared_filesystem.jpg)
+# Configuración de red
+variable "vcn_cidr" {
+  description = "CIDR de la VCN"
+  default     = "10.0.0.0/16"
+}
+```
 
-### LESSON 5a - Shared Filesystem (+ Network Security Groups) 
+### Adaptaciones Recomendadas
 
-In this lesson, we will modify the configuration a little bit. Shared filesystem will be moved to additonal
-subnet and NSG will be used instead of SecurityList. This is not obligatory lesson, but it good to understand how to make your configuration more secured.
+1. **Cambiar regiones** según ubicación geográfica
+2. **Ajustar shapes** según requisitos de rendimiento
+3. **Modificar CIDRs** para evitar conflictos
+4. **Personalizar tags** para organización
+5. **Configurar monitoring** y alertas
 
-![](LESSON5a_shared_filesystem_security_groups/LESSON5a_shared_filesystem_security_groups.jpg)
+## 🔍 Monitoreo y Troubleshooting
 
-### LESSON 6 - Local Block Volume
+### Logs Importantes
 
-In this lesson, we will add only one additional OCI resource. It will be 100G block volume (*oci_core_volume*), which will be then associated with the first web server VM. With the usage of *Null Provider* we will execute the script to discover iscsi disk on Webserver1, configure partition there, format as ext4 filesystem and finally mount it as /u01 (entries added to /etc/fstab). This kind of block volume can be used for example for installation of Glassfish or any other Application Container software which requires a lot of space. 
+```bash
+# Logs de Terraform
+terraform logs
 
-![](LESSON6_local_block_volumes/LESSON6_local_block_volumes.jpg)
+# Logs de OCI
+oci logging log-entry list --log-group-id <log-group-id>
 
-### LESSON 7 - DBSystem
+# Logs de instancias
+ssh -i private_key opc@<instance-ip> "sudo journalctl -f"
+```
 
-In this lesson, we will introduce the database component which is based on additional region private subnet for OCI DBSystem (*oci_database_db_system*). All necessary variables required to setup DBSystem have been added to variables.tf file. We have to also create additional Security List for SQLNet protocol and this Security List has been bound to this new private database subnet. DBSystem provisioning is based on one VM and Standard Edition of 12.1 RDBMS. With this OCI PaaS offering included in Terraform automation, you can expect to have a longer break in work. DBSystem use to be provisioned in 1 hour, so one or two coffees will be needed :)
+### Comandos de Diagnóstico
 
-![](LESSON7_dbsystem/LESSON7_dbsystem.jpg)
+```bash
+# Verificar conectividad
+ping <instance-ip>
+telnet <instance-ip> <port>
 
-### LESSON 7a - DBSystem with DataGuard
+# Verificar configuración de red
+oci network vcn get --vcn-id <vcn-id>
+oci network subnet list --compartment-id <compartment-id>
 
-In this lesson, we will introduce the OCI DBSystem DataGuard association. It will provide standby database in additional DBSystem located in a different AD comparing to primary database. This setup is for DR purposes.
-Another aspect is a switch from security lists to NSG, now also on DBSystem level.
+# Verificar estado de recursos
+terraform show
+terraform state list
+```
 
-![](LESSON7a_dbsystem_with_dataguard/LESSON7a_dbsystem_with_dataguard.jpg)
+## 📚 Recursos Adicionales
 
-### LESSON 8 - VCN local peering
+### Documentación Oficial
+- [OCI Terraform Provider](https://registry.terraform.io/providers/oracle/oci/latest/docs)
+- [OCI Documentation](https://docs.oracle.com/en-us/iaas/Content/home.htm)
+- [Terraform Documentation](https://www.terraform.io/docs)
 
-This lesson is the most complex so far. Besides the current pair of Compartment and VCN we would like to setup up a completely separated island. It will be a new Compartment there called *ExternalCompartment*. It this compartment we will create brand new VCN (*FoggyKitchenVCN2*) with completely different CIDR (192.168.0.0/16). Inside this VCN we will create a new regional private subnet and the Backend server will be nested there. So far this is the isolated island from original cloud infrastructure, so to interconnect them we need to create local peering with LPGs. Finally, we need to apply LPG policies there. If everything goes good we should be able to access Backend Server from Database server with SSH protocol. Let's roll with *terraform apply*.
+### Herramientas Recomendadas
+- [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)
+- [OCI Cloud Shell](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm)
+- [Terraform Cloud](https://www.terraform.io/cloud)
 
+### Comunidad
+- [OCI Community](https://community.oracle.com/tech/developers/categories/cloud-infrastructure)
+- [Terraform Community](https://discuss.hashicorp.com/c/terraform-core/27)
 
-![](LESSON8_vcn_local_peering/LESSON8_vcn_local_peering.jpg)
+## 🤝 Contribuciones
 
-### LESSON 9 - VCN remote peering
+¡Las contribuciones son bienvenidas! Por favor:
 
-In this lesson I will move *FoggyKitchenVCN2* content, including subnet and BackendServer to another region (eu-amsterdam-1). In this case I need to build Dynamic Routing Gateways (DRGs) for both VCNs and interconnect them with Remote Peering Connections (RPCs). I also need to establish some additional policies to let this interconnection work. From functional perspective cross-region connection will work as the local one from the lesson 8. We will be able to access Backend server with SSH from DBSystem server and additonally from webservers.
+1. Fork el repositorio
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir un Pull Request
 
+## 📄 Licencia
 
-![](LESSON9_vcn_remote_peering/LESSON9_vcn_remote_peering.jpg)
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-### LESSON 9a - VCN remote peering with cross-region DataGuard 
+## 👨‍💻 Créditos
 
-This lesson is a mixture of lesson9 and lesson 7a. We are setting up cross-region DGAssociation. In this lesson I primary DBSystem will be in one datacenter (eu-frankfurt-1) and standby database will be deployed in another region (eu-amsterdam-1). DataGuard's SQLNet traffic will go via DRGs/RPC and OCI backbone network.
+- **Basado en:** [Foggykitchen OCI Terraform Examples](https://github.com/foggykitchen/oci-terraform-examples)
+- **Adaptado y mejorado por:** Jesus Montoya, Arquitecto Cloud
+- **Contribuidores:** Comunidad OCI y Terraform
 
-![](LESSON9a_vcn_remote_peering_with_dataguard/LESSON9a_vcn_remote_peering_with_dataguard.jpg)
+## 📞 Soporte
 
-## Contributing
-This project is open source. Please submit your contributions by forking this repository and submitting a pull request! [FoggyKitchen.com](https://foggykitchen.com/) appreciates any contributions that are made by the open source community.
+- **Issues:** [GitHub Issues](https://github.com/your-username/oci-terraform-foundations/issues)
+- **Discusiones:** [GitHub Discussions](https://github.com/your-username/oci-terraform-foundations/discussions)
+- **Email:** tu-email@ejemplo.com
 
-## License
-Copyright (c) 2025 [FoggyKitchen.com](https://foggykitchen.com/)
+---
 
-Licensed under the Universal Permissive License (UPL), Version 1.0.
-
-See [LICENSE](LICENSE) for more details.
+⭐ **¡No olvides dar una estrella al repositorio si te ha sido útil!**

@@ -1,0 +1,74 @@
+---
+- name: Configurar servidor bastión
+  hosts: bastion
+  become: true
+  gather_facts: yes
+
+  tasks:
+    - name: Limpiar procesos APT bloqueantes
+      ansible.builtin.shell: |
+        pkill -f apt || true
+        pkill -f dpkg || true
+        sleep 5
+      args:
+        warn: no
+      changed_when: false
+      failed_when: false
+
+    - name: Actualizar caché APT (con reintentos)
+      ansible.builtin.apt:
+        update_cache: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      register: apt_update
+      retries: 5
+      delay: 10
+      until: apt_update is succeeded
+
+    - name: Instalar paquetes esenciales
+      ansible.builtin.apt:
+        name:
+          - fail2ban
+          - git
+          - net-tools
+          - nfs-common
+          - python3-apt
+        state: present
+        update_cache: no
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      retries: 5
+      delay: 10
+      register: apt_install
+      until: apt_install is succeeded
+
+    - name: Crear configuración de fail2ban para SSH
+      copy:
+        dest: /etc/fail2ban/jail.d/sshd.conf
+        content: |
+          [sshd]
+          enabled = true
+          port = 22
+          filter = sshd
+          logpath = %(sshd_log)s
+          maxretry = 3
+          findtime = 300
+          bantime = 3600
+      notify:
+        - restart fail2ban
+
+    - name: Asegurar que fail2ban esté habilitado y en ejecución
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Mostrar estado de la configuración
+      debug:
+        msg: "Configuración del bastión completada para {{ ansible_hostname }}"
+
+  handlers:
+    - name: restart fail2ban
+      service:
+        name: fail2ban
+        state: restarted 

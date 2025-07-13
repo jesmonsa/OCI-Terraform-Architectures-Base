@@ -1,0 +1,572 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Kill any running apt processes
+      shell: |
+        pkill -f apt || true
+        pkill -f dpkg || true
+        sleep 5
+      ignore_errors: yes
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      retries: 3
+      delay: 10
+      register: apt_update_result
+      until: apt_update_result is succeeded
+
+    - name: Install Apache, IPTables-Persistent and NFS utilities
+      apt:
+        name:
+          - apache2
+          - iptables-persistent
+          - nfs-common
+        state: present
+      retries: 3
+      delay: 10
+
+    - name: Create mount point for shared filesystem
+      file:
+        path: /shared
+        state: directory
+        mode: '0755'
+        owner: www-data
+        group: www-data
+
+    - name: Mount the shared filesystem
+      mount:
+        path: /shared
+        src: "10.0.4.25:/sharedfs"
+        fstype: nfs
+        opts: rw,sync,hard,intr
+        state: mounted
+
+    - name: Create shared web directory
+      file:
+        path: /shared/web
+        state: directory
+        mode: '0755'
+        owner: www-data
+        group: www-data
+
+    - name: Create symbolic link for shared web content
+      file:
+        src: /shared/web
+        dest: /var/www/html/shared
+        state: link
+        owner: www-data
+        group: www-data
+
+    - name: Flush all INPUT chain rules to ensure a clean slate
+      iptables:
+        chain: INPUT
+        flush: yes
+
+    - name: Re-insert rule to allow SSH traffic on port 22 from Bastion
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "1"
+        protocol: tcp
+        source: "{{ ansible_default_ipv4.network }}/24"
+        destination_port: "22"
+        jump: ACCEPT
+        comment: "Allow SSH traffic from Bastion subnet"
+
+    - name: Insert rule to allow HTTP traffic on port 80 from Load Balancer
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "2"
+        protocol: tcp
+        source: "{{ ansible_default_ipv4.network }}/24"
+        destination_port: "80"
+        jump: ACCEPT
+        comment: "Allow HTTP traffic from Load Balancer subnet"
+      notify: Save iptables rules
+
+    - name: Create professional index.html with FSS styling
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>📁 Servidor Web Enterprise {{ ansible_facts.hostname }} - FSS + NSG Security</title>
+              <style>
+                  body {
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                      background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+                      margin: 0;
+                      padding: 0;
+                      min-height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                      position: relative;
+                      overflow-x: hidden;
+                  }
+                  .container {
+                      text-align: center;
+                      background: rgba(255, 255, 255, 0.1);
+                      padding: 60px;
+                      border-radius: 20px;
+                      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                      backdrop-filter: blur(10px);
+                      border: 2px solid rgba(255, 255, 255, 0.2);
+                      max-width: 900px;
+                      animation: fadeInUp 1s ease-out;
+                      position: relative;
+                      z-index: 10;
+                  }
+                  .server-badge {
+                      background: linear-gradient(135deg, #e67e22, #d35400);
+                      color: white;
+                      padding: 15px 30px;
+                      border-radius: 50px;
+                      font-weight: bold;
+                      font-size: 16px;
+                      margin-bottom: 30px;
+                      display: inline-block;
+                      box-shadow: 0 10px 25px rgba(230, 126, 34, 0.3);
+                      animation: pulse 2s infinite;
+                      letter-spacing: 1px;
+                  }
+                  h1 {
+                      font-size: 3.5em;
+                      margin-bottom: 30px;
+                      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                      background: linear-gradient(135deg, #e67e22, #f39c12);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                      animation: slideInLeft 1s ease-out 0.5s both;
+                  }
+                  .info-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                      gap: 20px;
+                      margin: 40px 0;
+                  }
+                  .info-card {
+                      background: rgba(255, 255, 255, 0.05);
+                      padding: 25px;
+                      border-radius: 15px;
+                      border-left: 5px solid #e67e22;
+                      transition: all 0.3s ease;
+                      backdrop-filter: blur(5px);
+                  }
+                  .info-card:hover {
+                      transform: translateY(-10px);
+                      box-shadow: 0 15px 30px rgba(230, 126, 34, 0.3);
+                      background: rgba(255, 255, 255, 0.1);
+                  }
+                  .info-label {
+                      font-weight: bold;
+                      color: #e67e22;
+                      font-size: 1.1em;
+                      margin-bottom: 10px;
+                      display: block;
+                  }
+                  .info-value {
+                      font-size: 1.2em;
+                      word-break: break-all;
+                      color: #ecf0f1;
+                  }
+                  .security-indicator {
+                      background: linear-gradient(135deg, #27ae60, #2ecc71);
+                      color: white;
+                      padding: 12px 25px;
+                      border-radius: 25px;
+                      margin: 10px;
+                      display: inline-block;
+                      font-weight: bold;
+                      box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+                      animation: fadeInUp 1s ease-out var(--delay, 0s) both;
+                      transition: all 0.3s ease;
+                  }
+                  .security-indicator:hover {
+                      transform: scale(1.05);
+                      box-shadow: 0 12px 25px rgba(39, 174, 96, 0.4);
+                  }
+                  .security-indicator:nth-child(1) { --delay: 0.2s; }
+                  .security-indicator:nth-child(2) { --delay: 0.4s; }
+                  .security-indicator:nth-child(3) { --delay: 0.6s; }
+                  .security-indicator:nth-child(4) { --delay: 0.8s; }
+                  .security-indicator:nth-child(5) { --delay: 1.0s; }
+                  .fss-indicator {
+                      background: linear-gradient(135deg, #e67e22, #f39c12);
+                      color: white;
+                      padding: 12px 25px;
+                      border-radius: 25px;
+                      margin: 10px;
+                      display: inline-block;
+                      font-weight: bold;
+                      box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+                      animation: fadeInUp 1s ease-out var(--delay, 0s) both;
+                      transition: all 0.3s ease;
+                  }
+                  .fss-indicator:hover {
+                      transform: scale(1.05);
+                      box-shadow: 0 12px 25px rgba(230, 126, 34, 0.4);
+                  }
+                  .architecture-badge {
+                      background: linear-gradient(135deg, #8e44ad, #9b59b6);
+                      color: white;
+                      padding: 15px 30px;
+                      border-radius: 10px;
+                      font-size: 1.3em;
+                      font-weight: bold;
+                      margin: 30px 0;
+                      display: inline-block;
+                      box-shadow: 0 10px 25px rgba(142, 68, 173, 0.3);
+                      animation: slideInRight 1s ease-out 1s both;
+                  }
+                  .shared-content-section {
+                      background: rgba(230, 126, 34, 0.1);
+                      padding: 20px;
+                      border-radius: 15px;
+                      margin: 20px 0;
+                      border: 2px solid #e67e22;
+                  }
+                  .shared-link {
+                      display: inline-block;
+                      background: linear-gradient(135deg, #e67e22, #f39c12);
+                      color: white;
+                      text-decoration: none;
+                      padding: 15px 30px;
+                      border-radius: 25px;
+                      font-weight: bold;
+                      margin: 10px;
+                      transition: all 0.3s ease;
+                      box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+                  }
+                  .shared-link:hover {
+                      transform: translateY(-3px);
+                      box-shadow: 0 12px 25px rgba(230, 126, 34, 0.4);
+                  }
+                  .floating-shapes {
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      height: 100%;
+                      pointer-events: none;
+                      z-index: 1;
+                  }
+                  .shape {
+                      position: absolute;
+                      background: rgba(255, 255, 255, 0.03);
+                      border-radius: 50%;
+                      animation: float 6s ease-in-out infinite;
+                  }
+                  .shape:nth-child(1) {
+                      width: 80px;
+                      height: 80px;
+                      top: 20%;
+                      left: 10%;
+                      animation-delay: 0s;
+                  }
+                  .shape:nth-child(2) {
+                      width: 120px;
+                      height: 120px;
+                      top: 60%;
+                      right: 10%;
+                      animation-delay: 2s;
+                  }
+                  .shape:nth-child(3) {
+                      width: 60px;
+                      height: 60px;
+                      bottom: 20%;
+                      left: 20%;
+                      animation-delay: 4s;
+                  }
+                  
+                  @keyframes fadeInUp {
+                      from {
+                          opacity: 0;
+                          transform: translateY(50px);
+                      }
+                      to {
+                          opacity: 1;
+                          transform: translateY(0);
+                      }
+                  }
+                  
+                  @keyframes slideInLeft {
+                      from {
+                          opacity: 0;
+                          transform: translateX(-100px);
+                      }
+                      to {
+                          opacity: 1;
+                          transform: translateX(0);
+                      }
+                  }
+                  
+                  @keyframes slideInRight {
+                      from {
+                          opacity: 0;
+                          transform: translateX(100px);
+                      }
+                      to {
+                          opacity: 1;
+                          transform: translateX(0);
+                      }
+                  }
+                  
+                  @keyframes pulse {
+                      0%, 100% {
+                          transform: scale(1);
+                      }
+                      50% {
+                          transform: scale(1.05);
+                      }
+                  }
+                  
+                  @keyframes float {
+                      0%, 100% {
+                          transform: translateY(0px) rotate(0deg);
+                      }
+                      50% {
+                          transform: translateY(-20px) rotate(180deg);
+                      }
+                  }
+                  
+                  @media (max-width: 768px) {
+                      .container {
+                          padding: 40px 20px;
+                          margin: 20px;
+                      }
+                      h1 {
+                          font-size: 2.5em;
+                      }
+                      .info-grid {
+                          grid-template-columns: 1fr;
+                      }
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="floating-shapes">
+                  <div class="shape"></div>
+                  <div class="shape"></div>
+                  <div class="shape"></div>
+              </div>
+              
+              <div class="container">
+                  <div class="server-badge">📁 SERVIDOR FSS + NSG</div>
+                  <h1>🚀 ¡SISTEMA DE ARCHIVOS COMPARTIDO!</h1>
+                  
+                  <div class="info-grid">
+                      <div class="info-card">
+                          <span class="info-label">🖥️ Hostname del Servidor</span>
+                          <span class="info-value">{{ ansible_facts.hostname }}</span>
+                      </div>
+                      <div class="info-card">
+                          <span class="info-label">🌐 Dirección IP Privada</span>
+                          <span class="info-value">{{ ansible_facts.default_ipv4.address }}</span>
+                      </div>
+                      <div class="info-card">
+                          <span class="info-label">🏠 Inventory Hostname</span>
+                          <span class="info-value">{{ inventory_hostname }}</span>
+                      </div>
+                      <div class="info-card">
+                          <span class="info-label">⏰ Timestamp</span>
+                          <span class="info-value">{{ ansible_date_time.iso8601 }}</span>
+                      </div>
+                  </div>
+                  
+                  <div class="security-indicators">
+                      <div class="security-indicator">🔒 SUBNET PRIVADA</div>
+                      <div class="security-indicator">🏰 BASTION HOST</div>
+                      <div class="security-indicator">🌐 NAT GATEWAY</div>
+                      <div class="security-indicator">🛡️ NETWORK SECURITY GROUPS</div>
+                      <div class="security-indicator">⚖️ LOAD BALANCER</div>
+                  </div>
+                  
+                  <div class="shared-content-section">
+                      <h3 style="color: #e67e22; margin-bottom: 20px;">📁 File Storage System Compartido</h3>
+                      <p style="color: #ecf0f1; margin-bottom: 20px;">
+                          Sistema de archivos NFS montado en /shared - Contenido compartido entre servidores
+                      </p>
+                      <a href="/shared/shared-content.html" class="shared-link">
+                          📄 Ver Contenido Compartido
+                      </a>
+                  </div>
+                  
+                  <div class="fss-indicator">📁 FILE STORAGE SYSTEM</div>
+                  <div class="fss-indicator">🔄 NFS MOUNT</div>
+                  <div class="fss-indicator">🌐 CONTENIDO COMPARTIDO</div>
+                  
+                  <div class="architecture-badge">
+                      📊 ARQUITECTURA 05A - FSS + NSG AVANZADA
+                  </div>
+              </div>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+
+    - name: Create professional shared content file
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>📁 Contenido Compartido FSS - {{ ansible_facts.hostname }}</title>
+              <style>
+                  body {
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                      background: linear-gradient(135deg, #f39c12 0%, #e67e22 50%, #d35400 100%);
+                      margin: 0;
+                      padding: 0;
+                      min-height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: white;
+                  }
+                  .container {
+                      text-align: center;
+                      background: rgba(255, 255, 255, 0.1);
+                      padding: 50px;
+                      border-radius: 20px;
+                      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                      backdrop-filter: blur(10px);
+                      border: 2px solid rgba(255, 255, 255, 0.2);
+                      max-width: 700px;
+                      animation: fadeIn 1s ease-out;
+                  }
+                  .fss-badge {
+                      background: linear-gradient(135deg, #2ecc71, #27ae60);
+                      color: white;
+                      padding: 15px 30px;
+                      border-radius: 50px;
+                      font-weight: bold;
+                      font-size: 16px;
+                      margin-bottom: 30px;
+                      display: inline-block;
+                      box-shadow: 0 10px 25px rgba(46, 204, 113, 0.3);
+                      animation: pulse 2s infinite;
+                  }
+                  h1 {
+                      font-size: 3em;
+                      margin-bottom: 30px;
+                      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                  }
+                  .info-section {
+                      background: rgba(255, 255, 255, 0.05);
+                      padding: 30px;
+                      border-radius: 15px;
+                      margin: 30px 0;
+                      border-left: 5px solid #2ecc71;
+                  }
+                  .info-item {
+                      margin: 15px 0;
+                      font-size: 1.2em;
+                      padding: 10px;
+                      background: rgba(255, 255, 255, 0.05);
+                      border-radius: 10px;
+                  }
+                  .info-label {
+                      font-weight: bold;
+                      color: #2ecc71;
+                  }
+                  .back-link {
+                      display: inline-block;
+                      background: linear-gradient(135deg, #3498db, #2980b9);
+                      color: white;
+                      text-decoration: none;
+                      padding: 15px 30px;
+                      border-radius: 25px;
+                      font-weight: bold;
+                      margin-top: 30px;
+                      transition: all 0.3s ease;
+                      box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+                  }
+                  .back-link:hover {
+                      transform: translateY(-3px);
+                      box-shadow: 0 12px 25px rgba(52, 152, 219, 0.4);
+                  }
+                  .nfs-indicator {
+                      background: linear-gradient(135deg, #e67e22, #f39c12);
+                      color: white;
+                      padding: 10px 20px;
+                      border-radius: 25px;
+                      margin: 10px;
+                      display: inline-block;
+                      font-weight: bold;
+                      font-size: 0.9em;
+                  }
+                  @keyframes fadeIn {
+                      from { opacity: 0; transform: translateY(30px); }
+                      to { opacity: 1; transform: translateY(0); }
+                  }
+                  @keyframes pulse {
+                      0%, 100% { transform: scale(1); }
+                      50% { transform: scale(1.05); }
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="fss-badge">📁 CONTENIDO COMPARTIDO FSS</div>
+                  <h1>🌐 File Storage System Compartido</h1>
+                  
+                  <div class="info-section">
+                      <div class="info-item">
+                          <span class="info-label">📂 Ubicación:</span> 
+                          File Storage System NFS (/shared/web)
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">🖥️ Servidor que sirve:</span> 
+                          {{ inventory_hostname }}
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">🌐 IP del Servidor:</span> 
+                          {{ ansible_facts.default_ipv4.address }}
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">⏰ Generado:</span> 
+                          {{ ansible_date_time.iso8601 }}
+                      </div>
+                      <div class="info-item">
+                          <span class="info-label">🛡️ Seguridad:</span> 
+                          Network Security Groups (NSGs)
+                      </div>
+                  </div>
+                  
+                  <div class="nfs-indicator">🔄 NFS MOUNT</div>
+                  <div class="nfs-indicator">🌐 COMPARTIDO</div>
+                  <div class="nfs-indicator">📁 FSS</div>
+                  
+                  <p style="margin: 30px 0; font-size: 1.1em; color: #ecf0f1;">
+                      Este archivo está almacenado en el File Storage System compartido y 
+                      es accesible desde todos los servidores web del pool.
+                  </p>
+                  
+                  <a href="/" class="back-link">⬅️ Volver a la Página Principal</a>
+              </div>
+          </body>
+          </html>
+        dest: /shared/web/shared-content.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Ensure Apache is running and enabled on boot
+      systemd:
+        name: apache2
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Save iptables rules
+      command: netfilter-persistent save 

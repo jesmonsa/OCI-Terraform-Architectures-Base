@@ -1,0 +1,18 @@
+# Ejemplo de variables para OCI (rellenar con tus datos reales, NO usar en producción)
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Security - Replace with your actual trusted IP for bastion access
+bastion_allowed_ip      = "YOUR_PUBLIC_IP/32"
+
+# Optional: Override default values if needed
+# vcn_cidr               = "10.0.0.0/16"
+# private_subnet_cidr    = "10.0.1.0/24"
+# lb_subnet_cidr         = "10.0.2.0/24"
+# bastion_subnet_cidr    = "10.0.3.0/24"
+# fss_subnet_cidr        = "10.0.4.0/24"
+# ComputeCount           = 3

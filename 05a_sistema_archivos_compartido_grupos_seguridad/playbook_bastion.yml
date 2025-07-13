@@ -1,0 +1,98 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Kill any running apt processes
+      shell: |
+        pkill -f apt || true
+        pkill -f dpkg || true
+        sleep 5
+      ignore_errors: yes
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      retries: 3
+      delay: 10
+      register: apt_update_result
+      until: apt_update_result is succeeded
+
+    - name: Install essential packages for bastion host
+      apt:
+        name:
+          - fail2ban
+          - iptables-persistent
+          - netfilter-persistent
+        state: present
+      retries: 3
+      delay: 10
+
+    - name: Flush all INPUT chain rules to ensure a clean slate
+      iptables:
+        chain: INPUT
+        flush: yes
+
+    - name: Insert rule to allow SSH traffic on port 22
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "1"
+        protocol: tcp
+        source: "0.0.0.0/0"
+        destination_port: "22"
+        jump: ACCEPT
+        comment: "Allow SSH traffic from anywhere"
+
+    - name: Insert rule to allow ICMP (Ping)
+      iptables:
+        chain: INPUT
+        action: insert
+        rule_num: "2"
+        protocol: icmp
+        source: "0.0.0.0/0"
+        jump: ACCEPT
+        comment: "Allow ICMP traffic"
+
+    - name: Configure fail2ban for SSH protection
+      template:
+        src: fail2ban_sshd.conf.j2
+        dest: /etc/fail2ban/jail.d/sshd.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
+
+    - name: Create welcome message for bastion host
+      copy:
+        content: |
+          ========================================
+          🛡️  BASTION HOST - LESSON5A
+          ========================================
+          
+          Este es el Bastion Host para acceder a los servidores web
+          protegidos con Network Security Groups (NSGs).
+          
+          File Storage System compartido entre webservers.
+          
+          ========================================
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure fail2ban is running and enabled
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+      notify: Restart fail2ban
+
+  handlers:
+    - name: Save iptables rules
+      command: netfilter-persistent save
+
+    - name: Restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted 

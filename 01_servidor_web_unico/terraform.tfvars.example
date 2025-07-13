@@ -1,6 +1,20 @@
-tenancy_ocid            = "ocid1.tenancy.oc1..*******"
-user_ocid               = "ocid1.user.oc1..*******"
-fingerprint             = "xx:xx:xx:*******:xx:xx"
-private_key_path        = "/Users/MyUser/.oci/oci_api_key.pem"
-region                  = "eu-frankfurt-1"
-compartment_ocid        = "ocid1.compartment.oc1..*******"
+# =============================================================================
+# CONFIGURACIÓN DE AUTENTICACIÓN OCI
+# =============================================================================
+# IMPORTANTE: Reemplaza estos valores con tus credenciales reales de OCI
+# NO uses estos valores de ejemplo en producción
+
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# =============================================================================
+# NOTAS ADICIONALES
+# =============================================================================
+# - Esta es la configuración más simple para un servidor web único
+# - No requiere configuración adicional de red o servicios
+# - Ideal para pruebas y desarrollo
+# - Para producción, considera usar shapes más potentes

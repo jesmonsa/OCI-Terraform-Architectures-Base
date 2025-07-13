@@ -20,7 +20,7 @@ resource "oci_core_dhcp_options" "EnterpriseDhcpOptions1" {
 
   options {
     type                = "SearchDomain"
-    search_domain_names = ["enterprise.local"]
+    search_domain_names = ["enterprise.com"]
   }
 }
 

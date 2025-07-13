@@ -1,0 +1,229 @@
+---
+# Author: OCI Architect  
+# Last review: 2025-06-23
+# Enterprise Bastion Host Configuration - Ubuntu Compatible
+
+- name: Configurar Enterprise Bastion Host
+  hosts: bastion
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    
+    # Fail2Ban Configuration
+    fail2ban_ignoreip: "127.0.0.1/8 ::1"
+    fail2ban_bantime: 86400  # 24 hours
+    fail2ban_findtime: 3600  # 1 hour
+    fail2ban_maxretry: 3
+    
+    # System Configuration
+    timezone: UTC
+    sysctl_settings:
+      - name: net.ipv4.tcp_syncookies
+        value: 1
+      - name: net.ipv4.conf.all.rp_filter
+        value: 1
+      - name: net.ipv4.conf.default.rp_filter
+        value: 1
+      - name: net.ipv4.ip_forward
+        value: 0
+  
+  # Pre-tasks for system setup
+  pre_tasks:
+    - name: Set timezone to UTC
+      timezone:
+        name: "{{ timezone }}"
+      tags: [system, timezone]
+    
+    - name: Fix APT repositories to use HTTPS
+      replace:
+        path: /etc/apt/sources.list
+        regexp: '^deb http://(.*)$'
+        replace: 'deb https://\1'
+      tags: [packages, system]
+    
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      retries: 3
+      delay: 10
+      tags: [packages, system]
+  
+  tasks:
+    - name: Upgrade all packages (security updates)
+      apt:
+        upgrade: safe
+        update_cache: yes
+      register: apt_update
+      tags: [packages, security]
+    
+    - name: Install required packages for Enterprise Bastion
+      apt:
+        name:
+          - fail2ban
+          - git
+          - net-tools
+          - nfs-common
+          - python3-pip
+          - bash-completion
+          - ufw
+          - htop
+          - curl
+          - wget
+          - unzip
+          - jq
+        state: present
+        update_cache: yes
+      register: apt_install
+      tags: [packages, base]
+    
+    - name: Install Python packages via pip
+      pip:
+        name:
+          - oci-cli
+        state: present
+      when: apt_install is succeeded
+      tags: [packages, python]
+    
+    - name: Configure sysctl parameters for security
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+        sysctl_set: yes
+      with_items: "{{ sysctl_settings }}"
+      tags: [system, kernel, security]
+    
+    - name: Harden SSH configuration
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        backup: yes
+      with_items:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+        - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
+        - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
+        - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+        - { regexp: '^#?Protocol', line: 'Protocol 2' }
+      notify: restart sshd
+      tags: [security, ssh]
+    
+    - name: Configure fail2ban for SSH protection
+      copy:
+        dest: /etc/fail2ban/jail.d/sshd.conf
+        content: |
+          [sshd]
+          enabled = true
+          port = ssh
+          filter = sshd
+          logpath = /var/log/auth.log
+          maxretry = {{ fail2ban_maxretry }}
+          findtime = {{ fail2ban_findtime }}
+          bantime = {{ fail2ban_bantime }}
+          ignoreip = {{ fail2ban_ignoreip }}
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart fail2ban
+      tags: [security, fail2ban]
+    
+    - name: Enable and start fail2ban
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+      tags: [security, fail2ban]
+    
+    - name: Configure UFW firewall with rate limiting
+      ufw:
+        rule: "{{ item.rule }}"
+        port: "{{ item.port }}"
+        proto: "{{ item.proto | default('tcp') }}"
+        comment: "{{ item.comment }}"
+      with_items:
+        - { rule: 'limit', port: '22', comment: 'SSH access with rate limiting' }
+        - { rule: 'deny', port: '1521', comment: 'Block Oracle DB port' }
+      tags: [security, firewall]
+    
+    - name: Enable UFW firewall
+      ufw:
+        state: enabled
+        policy: deny
+      tags: [security, firewall]
+    
+    - name: Create Enterprise motd
+      copy:
+        dest: /etc/motd
+        content: |
+          ===============================================
+          🏢 ENTERPRISE BASTION HOST - OCI Architecture 07
+          ===============================================
+          
+          🛡️  Security Features:
+          • SSH hardening with fail2ban protection
+          • UFW firewall enabled  
+          • No root login allowed
+          • Key-based authentication only
+          
+          🔧 Management Tools:
+          • OCI CLI installed
+          • Network utilities available
+          • NFS client configured
+          
+          📊 System Info:
+          • Hostname: {{ ansible_hostname }}
+          • IP: {{ ansible_default_ipv4.address }}
+          • OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          
+          ⚠️  AUTHORIZED ACCESS ONLY
+          ===============================================
+        owner: root
+        group: root
+        mode: '0644'
+      tags: [system, info]
+    
+    - name: Setup automatic security updates
+      copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        owner: root
+        group: root
+        mode: '0644'
+      tags: [security, updates]
+    
+    - name: Install unattended-upgrades for security updates
+      apt:
+        name: unattended-upgrades
+        state: present
+      tags: [security, updates]
+  
+  handlers:
+    - name: restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted
+        enabled: yes
+    
+    - name: restart sshd
+      systemd:
+        name: ssh
+        state: restarted
+        enabled: yes
+  
+  post_tasks:
+    - name: Display bastion configuration summary
+      debug:
+        msg:
+          - "✅ Enterprise Bastion Host configuration completed successfully"
+          - "🛡️ Security: SSH hardened, fail2ban active, UFW firewall enabled"
+          - "🔧 Tools: OCI CLI, network utilities, NFS client ready"
+          - "📊 System: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "🔑 Access: SSH key authentication only via port 22"
+      tags: [info]
