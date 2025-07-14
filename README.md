@@ -1,57 +1,69 @@
-# OCI Terraform Foundations
+# 🏗️ OCI Terraform Foundations - Arquitecturas de Referencia
 
-[![Terraform](https://img.shields.io/badge/Terraform-1.0+-blue.svg)](https://www.terraform.io/)
-[![OCI](https://img.shields.io/badge/Oracle%20Cloud-Infrastructure-orange.svg)](https://www.oracle.com/cloud/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Terraform](https://img.shields.io/badge/Terraform-%3E%3D0.15.0-blue.svg)](https://www.terraform.io/)
+[![OpenTofu](https://img.shields.io/badge/OpenTofu-%3E%3D1.0.0-orange.svg)](https://opentofu.org/)
+[![OCI](https://img.shields.io/badge/Oracle%20Cloud-Infrastructure-red.svg)](https://www.oracle.com/cloud/)
+[![Ansible](https://img.shields.io/badge/Ansible-%3E%3D2.9-black.svg)](https://www.ansible.com/)
+[![License](https://img.shields.io/badge/License-UPL--1.0-green.svg)](LICENSE)
 
 ## 📋 Descripción del Proyecto
 
-Este repositorio contiene **14 arquitecturas progresivas** de Terraform para Oracle Cloud Infrastructure (OCI), diseñadas como un curso completo de aprendizaje. Cada arquitectura construye sobre la anterior, introduciendo conceptos más avanzados de infraestructura como código.
+Este repositorio contiene **14 arquitecturas progresivas** de referencia basadas en Terraform para Oracle Cloud Infrastructure (OCI), diseñadas como plantillas base seguras y escalables para implementaciones empresariales. Cada arquitectura construye sobre la anterior, introduciendo conceptos más avanzados de infraestructura como código y siguiendo las mejores prácticas de seguridad cloud-native.
 
-### 🎯 Objetivos del Curso
+### ✨ Características Principales
 
-- **Aprender Terraform HCL 1.0** con ejemplos prácticos de OCI
-- **Progresión incremental** desde conceptos básicos hasta arquitecturas empresariales
-- **Mejores prácticas** de seguridad, alta disponibilidad y escalabilidad
-- **Implementación real** de patrones arquitectónicos en la nube
+- 🚀 **One-Click Deploy** - Botones de despliegue directo con Oracle Resource Manager
+- 🔒 **Seguridad por Diseño** - Network Security Groups, bastion hosts y principio de menor privilegio
+- ⚡ **Aprovisionamiento Automatizado** - Ansible integrado para configuración automática de software
+- 🌍 **Multi-Región** - Arquitecturas cross-region con disaster recovery
+- 📚 **Documentación Completa** - Guías detalladas con diagramas ASCII y troubleshooting
+- 🏗️ **Arquitecturas Empresariales** - Patrones probados para aplicaciones de producción
+
+### 🎯 Objetivos de las Arquitecturas de Referencia
+
+- **Arquitecturas Base Seguras** con patrones probados para OCI usando Terraform/OpenTofu
+- **Progresión incremental** desde conceptos básicos hasta arquitecturas empresariales complejas
+- **Mejores prácticas** de seguridad cloud-native, alta disponibilidad y escalabilidad automática
+- **Plantillas listas para producción** de patrones arquitectónicos empresariales
+- **Compliance y seguridad** siguiendo los marcos de trabajo de Oracle Well-Architected Framework
 
 ## 🏗️ Arquitecturas Disponibles
 
 ### 📚 Nivel Básico - Fundamentos
 
-| Arquitectura | Descripción | Complejidad |
-|--------------|-------------|-------------|
-| [01 - Servidor Web Único](01_servidor_web_unico/) | Servidor web básico en subred pública | ⭐ |
-| [02 - Segundo Servidor Web](02_segundo_servidor_web_en_otro_AD/) | Alta disponibilidad entre Availability Domains | ⭐⭐ |
-| [02a - Segundo Servidor Web (FD)](02a_segundo_servidor_web_en_otro_FD/) | Alta disponibilidad entre Fault Domains | ⭐⭐ |
+| Arquitectura | Descripción | Complejidad | Deploy |
+|--------------|-------------|-------------|---------|
+| [01 - Servidor Web Único](01_servidor_web_unico/) | Servidor web básico en subred pública con seguridad multi-capa | ⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [02 - Segundo Servidor Web](02_segundo_servidor_web_en_otro_AD/) | Alta disponibilidad entre Availability Domains con NSGs | ⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [02a - Segundo Servidor Web (FD)](02a_segundo_servidor_web_en_otro_FD/) | Alta disponibilidad entre Fault Domains para regiones single-AD | ⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
 
 ### 🔄 Nivel Intermedio - Balanceo y Seguridad
 
-| Arquitectura | Descripción | Complejidad |
-|--------------|-------------|-------------|
-| [03 - Balanceador de Carga](03_balanceador_de_carga/) | Load balancer con múltiples servidores | ⭐⭐⭐ |
-| [04 - Balanceador + NAT + Bastion](04_balanceador_NAT_bastion/) | Arquitectura segura con subredes privadas | ⭐⭐⭐⭐ |
-| [04a - Balanceador + NAT + Bastion + NSG](04a_balanceador_NAT_bastion_grupos_seguridad/) | Seguridad avanzada con Network Security Groups | ⭐⭐⭐⭐ |
+| Arquitectura | Descripción | Complejidad | Deploy |
+|--------------|-------------|-------------|---------|
+| [03 - Balanceador de Carga](03_balanceador_de_carga/) | Load balancer con múltiples servidores y health checks | ⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [04 - Balanceador + NAT + Bastion](04_balanceador_NAT_bastion/) | Arquitectura segura con subredes privadas y bastion host | ⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [04a - Balanceador + NAT + Bastion + NSG](04a_balanceador_NAT_bastion_grupos_seguridad/) | Seguridad avanzada con Network Security Groups granulares | ⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
 
 ### 💾 Nivel Avanzado - Almacenamiento y Base de Datos
 
-| Arquitectura | Descripción | Complejidad |
-|--------------|-------------|-------------|
-| [05 - Sistema de Archivos Compartido](05_sistema_archivos_compartido/) | File Storage compartido entre servidores | ⭐⭐⭐ |
-| [05a - Sistema de Archivos + NSG](05a_sistema_archivos_compartido_grupos_seguridad/) | File Storage con grupos de seguridad | ⭐⭐⭐⭐ |
-| [06 - Volúmenes Bloque Local](06_volumenes_bloque_local/) | Block Storage para almacenamiento persistente | ⭐⭐⭐ |
-| [07 - Sistema Base de Datos](07_sistema_base_datos/) | Oracle Database en subred privada | ⭐⭐⭐⭐ |
-| [07a - Sistema Base de Datos + Data Guard](07a_sistema_base_datos_con_dataguard/) | Alta disponibilidad con Data Guard | ⭐⭐⭐⭐⭐ |
+| Arquitectura | Descripción | Complejidad | Deploy |
+|--------------|-------------|-------------|---------|
+| [05 - Sistema de Archivos Compartido](05_sistema_archivos_compartido/) | File Storage Service (FSS) compartido entre servidores | ⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [05a - Sistema de Archivos + NSG](05a_sistema_archivos_compartido_grupos_seguridad/) | File Storage con Network Security Groups avanzados | ⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [06 - Volúmenes Bloque Local](06_volumenes_bloque_local/) | Block Storage para almacenamiento persistente de alto rendimiento | ⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [07 - Sistema Base de Datos](07_sistema_base_datos/) | Oracle Database System en subred privada segura | ⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [07a - Sistema Base de Datos + DataGuard](07a_sistema_base_datos_con_dataguard/) | Alta disponibilidad con Oracle DataGuard automático | ⭐⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
 
 ### 🌐 Nivel Experto - Conectividad Avanzada
 
-| Arquitectura | Descripción | Complejidad |
-|--------------|-------------|-------------|
-| [08 - Peering VCN Local](08_peering_vcn_local/) | Conectividad entre VCNs en la misma región | ⭐⭐⭐⭐ |
-| [09 - Peering VCN Remoto](09_peering_vcn_remoto/) | Conectividad entre VCNs en diferentes regiones | ⭐⭐⭐⭐⭐ |
-| [09a - Peering VCN Remoto + Data Guard](09a_peering_vcn_remoto_con_dataguard/) | Arquitectura multi-región con Data Guard | ⭐⭐⭐⭐⭐ |
+| Arquitectura | Descripción | Complejidad | Deploy |
+|--------------|-------------|-------------|---------|
+| [08 - Peering VCN Local](08_peering_vcn_local/) | Conectividad entre VCNs en la misma región con DRGs | ⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [09 - Peering VCN Remoto](09_peering_vcn_remoto/) | Conectividad cross-region con Remote Peering Connections | ⭐⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
+| [09a - Peering VCN Remoto + DataGuard](09a_peering_vcn_remoto_con_dataguard/) | Disaster Recovery multi-región con DataGuard cross-region | ⭐⭐⭐⭐⭐ | [![Deploy](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/jesmonsa/01-oci-terraform-foundations/archive/refs/heads/main.zip) |
 
-## 🛣️ Ruta de Aprendizaje Recomendada
+## 🛣️ Progresión de Arquitecturas de Referencia
 
 ```mermaid
 graph TD
@@ -75,7 +87,8 @@ graph TD
 
 ### Prerrequisitos
 
-- **Terraform 1.0+** o **OpenTofu 1.0+**
+- **Terraform >= 0.15.0** o **OpenTofu >= 1.0.0**
+- **Ansible >= 2.9** (para aprovisionamiento automático)
 - **Cuenta de OCI** con permisos de administrador
 - **OCI CLI** configurado (opcional)
 - **Git** para clonar el repositorio
@@ -84,8 +97,8 @@ graph TD
 
 1. **Clonar el repositorio:**
 ```bash
-git clone https://github.com/your-username/oci-terraform-foundations.git
-cd oci-terraform-foundations
+git clone https://github.com/jesmonsa/01-oci-terraform-foundations.git
+cd 01-oci-terraform-foundations
 ```
 
 2. **Configurar variables de entorno:**
@@ -306,15 +319,15 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para
 
 ## 👨‍💻 Créditos
 
-- **Basado en:** [Foggykitchen OCI Terraform Examples](https://github.com/foggykitchen/oci-terraform-examples)
+- **Basado en:** [Foggykitchen OCI Terraform Course](https://github.com/mlinxfeld/foggykitchen_tf_oci_course)
 - **Adaptado y mejorado por:** Jesus Montoya, Arquitecto Cloud
 - **Contribuidores:** Comunidad OCI y Terraform
 
 ## 📞 Soporte
 
-- **Issues:** [GitHub Issues](https://github.com/your-username/oci-terraform-foundations/issues)
-- **Discusiones:** [GitHub Discussions](https://github.com/your-username/oci-terraform-foundations/discussions)
-- **Email:** tu-email@ejemplo.com
+- **Issues:** [GitHub Issues](https://github.com/jesmonsa/01-oci-terraform-foundations/issues)
+- **Discusiones:** [GitHub Discussions](https://github.com/jesmonsa/01-oci-terraform-foundations/discussions)
+- **LinkedIn:** [Jesus Montoya - Arquitecto Cloud](https://linkedin.com/in/jesmonsa)
 
 ---
 
