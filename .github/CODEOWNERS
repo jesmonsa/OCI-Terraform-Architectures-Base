@@ -1,0 +1,10 @@
+# CODEOWNERS — OCI-Terraform-Architectures-Base
+* @jesmonsa
+
+*.tfvars            @jesmonsa
+*.tfvars.example    @jesmonsa
+*.pem               @jesmonsa
+provider.tf         @jesmonsa
+variables.tf        @jesmonsa
+.github/            @jesmonsa
+*.sh                @jesmonsa
